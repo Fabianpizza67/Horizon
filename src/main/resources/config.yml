@@ -1,0 +1,33 @@
+database:
+  host: localhost
+  port: 3306
+  name: horizon
+  user: root
+  password: ''
+
+ship:
+  movement-interval-ticks: 10
+  default-speed: 2
+  max-speed: 5
+  player-soft-limit: 2500
+  player-hard-limit: 3000
+  admin-limit: 10000
+  scan-steps-per-tick: 1000
+  auto-save-interval: 30
+
+warp:
+  # Seconds the warp drive charges before jumping
+  charge-time-seconds: 5
+  # Blocks of travel per one unit of Dilithium fuel
+  blocks-per-fuel-unit: 100
+
+crew:
+  # Ticks between morale decay ticks (6000 = 5 minutes)
+  morale-decay-interval-ticks: 6000
+  # Morale lost per decay tick
+  morale-decay-per-tick: 0.5
+  # Base salary for a skill-1 crew member (Energy Credits / day)
+  base-salary: 100
+
+messages:
+  prefix: '&#00b4d8[usermc] &r'
