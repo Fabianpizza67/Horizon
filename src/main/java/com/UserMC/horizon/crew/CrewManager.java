@@ -38,11 +38,14 @@ public class CrewManager {
     private final Map<UUID, List<CrewMember>> shipCrew   = new HashMap<>();
 
     private BukkitTask moraleDecayTask;
+    private BukkitTask autoSaveTask;
 
     /** How many morale points lost per decay tick. */
     private static final double MORALE_DECAY_PER_TICK = 0.5;
     /** How often morale decays (ticks). Default 5 minutes = 6000 ticks. */
     private static final long   MORALE_DECAY_INTERVAL = 6_000L;
+    /** How often dirty crew (morale changes, hires, etc.) get flushed to DB. 60s. */
+    private static final long   AUTO_SAVE_INTERVAL    = 1_200L;
 
     public CrewManager(Horizon plugin) {
         this.plugin  = plugin;
@@ -65,13 +68,43 @@ public class CrewManager {
         }
         plugin.getLogger().info("Loaded " + allCrew.size() + " crew member(s).");
         startMoraleDecay();
+        startAutoSave();
     }
 
+    /** Called from onDisable(). Stops periodic tasks and does a final SYNCHRONOUS flush. */
     public void saveAll() {
         if (moraleDecayTask != null) moraleDecayTask.cancel();
+        if (autoSaveTask    != null) autoSaveTask.cancel();
+        flushDirty();
+    }
+
+    /**
+     * Synchronously persist every dirty crew member (morale, hires, role changes, etc.).
+     * Safe to call mid-session (e.g. an admin /ship save command).
+     */
+    public void flushDirty() {
+        int saved = 0;
         for (CrewMember cm : allCrew.values()) {
-            if (cm.isDirty()) dao.save(cm);
+            if (cm.isDirty()) {
+                dao.saveSync(cm);
+                saved++;
+            }
         }
+        if (saved > 0)
+            plugin.getLogger().info("Flushed " + saved + " dirty crew member(s) to database.");
+    }
+
+    /**
+     * Periodic safety net for morale decay and other crew state changes —
+     * without this, morale drift was only ever persisted at clean shutdown.
+     */
+    private void startAutoSave() {
+        autoSaveTask = plugin.getServer().getScheduler()
+                .runTaskTimer(plugin, () -> {
+                    for (CrewMember cm : allCrew.values()) {
+                        if (cm.isDirty()) dao.save(cm);
+                    }
+                }, AUTO_SAVE_INTERVAL, AUTO_SAVE_INTERVAL);
     }
 
     private void startMoraleDecay() {
@@ -113,9 +146,11 @@ public class CrewManager {
                            int skill, int salary, Location spawnAt) {
 
         List<CrewMember> existing = shipCrew.getOrDefault(ship.getShipId(), List.of());
-        int maxCrew = ship.getShipClass().getMaxCrewSlots();
+        int bonusSlots = plugin.getRankManager().getBonusCrewSlots(ship.getOwnerUUID());
+        int maxCrew = ship.getShipClass().getMaxCrewSlots() + bonusSlots;
         if (existing.size() >= maxCrew) {
-            throw new IllegalStateException("Ship has reached max crew slots (" + maxCrew + ").");
+            throw new IllegalStateException("Ship has reached max crew slots ("
+                    + maxCrew + (bonusSlots > 0 ? ", includes +" + bonusSlots + " from rank" : "") + ").");
         }
 
         UUID crewId = UUID.randomUUID();

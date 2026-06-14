@@ -79,6 +79,114 @@ public class ShipDAO {
         });
     }
 
+    /**
+     * Synchronous full save — INCLUDES structure_data.
+     *
+     * Used only when the calling thread MUST block until the write completes,
+     * specifically during plugin shutdown (saveAll) where async tasks scheduled
+     * via runTaskAsynchronously are not guaranteed to run before the connection
+     * pool is closed.
+     *
+     * Safe to call from the main thread during onDisable() — a handful of
+     * blocking UPDATEs at shutdown is negligible.
+     */
+    public void saveSync(Ship ship) {
+        String sql = """
+            INSERT INTO horizon_ships
+                (ship_id, name, owner_uuid, ship_class, world_name,
+                 core_x, core_y, core_z, heading, status, warp_status,
+                 fuel_level, structure_data)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                name           = VALUES(name),
+                ship_class     = VALUES(ship_class),
+                world_name     = VALUES(world_name),
+                core_x         = VALUES(core_x),
+                core_y         = VALUES(core_y),
+                core_z         = VALUES(core_z),
+                heading        = VALUES(heading),
+                status         = VALUES(status),
+                warp_status    = VALUES(warp_status),
+                fuel_level     = VALUES(fuel_level),
+                structure_data = VALUES(structure_data)
+        """;
+
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            Location      core      = ship.getCoreLocation();
+            ShipStructure structure = ship.getStructure();
+
+            ps.setString(1,  ship.getShipId().toString());
+            ps.setString(2,  ship.getName());
+            ps.setString(3,  ship.getOwnerUUID().toString());
+            ps.setString(4,  ship.getShipClass().name());
+            ps.setString(5,  core.getWorld().getName());
+            ps.setInt   (6,  core.getBlockX());
+            ps.setInt   (7,  core.getBlockY());
+            ps.setInt   (8,  core.getBlockZ());
+            ps.setFloat (9,  ship.getHeading());
+            ps.setString(10, ship.getStatus().name());
+            ps.setString(11, ship.getWarpStatus().name());
+            ps.setInt   (12, ship.getFuelLevel());
+            ps.setString(13, structure != null ? structure.serialize() : null);
+
+            ps.executeUpdate();
+            ship.clearDirty();
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to sync-save ship " + ship.getName(), e);
+        }
+    }
+
+    /**
+     * Lightweight async update — everything EXCEPT structure_data.
+     *
+     * Called after every movement/rotation/fuel/status change so the ship's
+     * position in the database never drifts more than a fraction of a second
+     * behind reality, without re-serializing the (potentially 100KB+) block
+     * structure on every tick.
+     *
+     * structure_data is only rewritten on scan (via save/saveSync).
+     */
+    public void updateState(Ship ship) {
+        String sql = """
+            UPDATE horizon_ships SET
+                world_name  = ?,
+                core_x      = ?,
+                core_y      = ?,
+                core_z      = ?,
+                heading     = ?,
+                status      = ?,
+                warp_status = ?,
+                fuel_level  = ?
+            WHERE ship_id = ?
+        """;
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                Location core = ship.getCoreLocation();
+
+                ps.setString(1, core.getWorld().getName());
+                ps.setInt   (2, core.getBlockX());
+                ps.setInt   (3, core.getBlockY());
+                ps.setInt   (4, core.getBlockZ());
+                ps.setFloat (5, ship.getHeading());
+                ps.setString(6, ship.getStatus().name());
+                ps.setString(7, ship.getWarpStatus().name());
+                ps.setInt   (8, ship.getFuelLevel());
+                ps.setString(9, ship.getShipId().toString());
+
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to update state for ship " + ship.getName(), e);
+            }
+        });
+    }
+
     // -----------------------------------------------------------------------
     // Delete
     // -----------------------------------------------------------------------

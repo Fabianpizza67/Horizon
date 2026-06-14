@@ -78,7 +78,11 @@
                     <relocations>
                         <relocation>
                             <pattern>com.zaxxer.hikari</pattern>
-                            <shadedPattern>com.usermc.horizon.libs.hikari</shadedPattern>
+                            <shadedPattern>nl.usermc.horizon.libs.hikari</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.mariadb</pattern>
+                            <shadedPattern>nl.usermc.horizon.libs.mariadb</shadedPattern>
                         </relocation>
                     </relocations>
                 </configuration>

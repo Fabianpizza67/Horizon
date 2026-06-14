@@ -149,7 +149,7 @@ public class WarpManager {
                     cancel();
                     chargingShips.remove(ship.getShipId());
                     ship.setWarpStatus(WarpStatus.JUMPING);
-                    executeJump(ship, target, fuelCost);
+                    executeJump(ship, target, fuelCost, distance);
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L);
@@ -171,7 +171,7 @@ public class WarpManager {
     // Jump execution — instant block teleport
     // -----------------------------------------------------------------------
 
-    private void executeJump(Ship ship, WarpBeacon target, int fuelCost) {
+    private void executeJump(Ship ship, WarpBeacon target, int fuelCost, double distance) {
         try {
             Location src  = ship.getCoreLocation();
             Location dest = target.getLocation();
@@ -207,6 +207,14 @@ public class WarpManager {
             if (!target.getDescription().isBlank()) {
                 broadcastToShip(ship, "§8[Beacon] §7" + target.getDescription());
             }
+
+            // Award warp XP to all passengers and check mission completion
+            for (UUID uuid : ship.getPassengers()) {
+                Player p = plugin.getServer().getPlayer(uuid);
+                if (p == null) continue;
+                plugin.getRankManager().awardWarpXp(p, distance);
+            }
+            plugin.getMissionManager().checkArrival(ship, target);
 
         } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Warp jump failed for ship " + ship.getName(), e);

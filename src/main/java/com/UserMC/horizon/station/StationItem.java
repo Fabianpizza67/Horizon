@@ -70,6 +70,7 @@ public class StationItem {
         registerHelm(plugin);
         registerNavigation(plugin);
         registerEngineering(plugin);
+        registerMissionTerminal(plugin);
         registerDilithium(plugin);
     }
 
@@ -110,6 +111,18 @@ public class StationItem {
         r.shape("IRI", "RRR", "IRI");
         r.setIngredient('I', Material.IRON_INGOT);
         r.setIngredient('R', Material.REDSTONE);
+        plugin.getServer().addRecipe(r);
+    }
+
+    private static void registerMissionTerminal(Horizon plugin) {
+        // P P P
+        // P R P    P=PAPER  R=REDSTONE_BLOCK  (8 paper + 1 redstone block)
+        // P P P
+        NamespacedKey key = new NamespacedKey(plugin, "mission_terminal");
+        ShapedRecipe r = new ShapedRecipe(key, create(StationType.MISSION_TERMINAL));
+        r.shape("PPP", "PRP", "PPP");
+        r.setIngredient('P', Material.PAPER);
+        r.setIngredient('R', Material.REDSTONE_BLOCK);
         plugin.getServer().addRecipe(r);
     }
 

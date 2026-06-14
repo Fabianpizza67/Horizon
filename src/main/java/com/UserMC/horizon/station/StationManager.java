@@ -5,6 +5,7 @@ import com.usermc.horizon.database.dao.StationDAO;
 import com.usermc.horizon.ship.Ship;
 import com.usermc.horizon.ship.ShipScanner;
 import org.bukkit.Location;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -15,6 +16,8 @@ public class StationManager {
 
     private final Map<Long, ShipStation>        locationIndex = new HashMap<>();
     private final Map<UUID, List<ShipStation>>  shipIndex     = new HashMap<>();
+
+    private BukkitTask autoSaveTask;
 
     public StationManager(Horizon plugin) {
         this.plugin = plugin;
@@ -31,12 +34,44 @@ public class StationManager {
             shipIndex.computeIfAbsent(s.getShipId(), k -> new ArrayList<>()).add(s);
         }
         plugin.getLogger().info("Loaded " + locationIndex.size() + " station(s).");
+        startAutoSave();
     }
 
+    /**
+     * Periodic safety net — catches any station position changes that, for
+     * whatever reason, weren't picked up by the per-move updatePosition() call.
+     * Runs every `auto-save-interval` seconds, same cadence as ShipManager.
+     */
+    private void startAutoSave() {
+        long interval = plugin.getHorizonConfig().getAutoSaveInterval() * 20L;
+        autoSaveTask = plugin.getServer().getScheduler()
+                .runTaskTimer(plugin, () -> {
+                    for (ShipStation s : locationIndex.values()) {
+                        if (s.isDirty()) dao.save(s);
+                    }
+                }, interval, interval);
+    }
+
+    /** Called from onDisable(). Stops the auto-save loop and does a final SYNCHRONOUS flush. */
     public void saveAll() {
+        if (autoSaveTask != null) autoSaveTask.cancel();
+        flushDirty();
+    }
+
+    /**
+     * Synchronously persist every dirty station.
+     * Safe to call mid-session (e.g. an admin /ship save command).
+     */
+    public void flushDirty() {
+        int saved = 0;
         for (ShipStation s : locationIndex.values()) {
-            if (s.isDirty()) dao.save(s);
+            if (s.isDirty()) {
+                dao.saveSync(s);
+                saved++;
+            }
         }
+        if (saved > 0)
+            plugin.getLogger().info("Flushed " + saved + " dirty station(s) to database.");
     }
 
     // -----------------------------------------------------------------------
@@ -65,6 +100,9 @@ public class StationManager {
             locationIndex.remove(packLoc(s.getLocation()));
             s.setLocation(s.getLocation().add(dx, dy, dz));
             locationIndex.put(packLoc(s.getLocation()), s);
+            // Persist immediately (lightweight, async) so the DB position never
+            // drifts behind reality — critical for surviving unexpected restarts.
+            dao.updatePosition(s);
         }
     }
 
@@ -100,6 +138,7 @@ public class StationManager {
             );
             s.setLocation(newLoc);
             locationIndex.put(packLoc(newLoc), s);
+            dao.updatePosition(s);
         }
     }
 

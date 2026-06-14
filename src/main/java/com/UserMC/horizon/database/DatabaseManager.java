@@ -14,9 +14,7 @@ public class DatabaseManager {
     private final Horizon plugin;
     private HikariDataSource dataSource;
 
-    public DatabaseManager(Horizon plugin) {
-        this.plugin = plugin;
-    }
+    public DatabaseManager(Horizon plugin) { this.plugin = plugin; }
 
     public boolean initialize() {
         HorizonConfig cfg = plugin.getHorizonConfig();
@@ -35,7 +33,6 @@ public class DatabaseManager {
         hikari.addDataSourceProperty("prepStmtCacheSize",     "250");
         hikari.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         hikari.setPoolName("Horizon-DB");
-
         try {
             dataSource = new HikariDataSource(hikari);
             createTables();
@@ -48,81 +45,75 @@ public class DatabaseManager {
     }
 
     private void createTables() throws SQLException {
-        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = getConnection(); Statement s = conn.createStatement()) {
 
-            stmt.executeUpdate("""
+            s.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS horizon_ships (
-                    ship_id        VARCHAR(36)  PRIMARY KEY,
-                    name           VARCHAR(64)  NOT NULL,
-                    owner_uuid     VARCHAR(36)  NOT NULL,
-                    ship_class     VARCHAR(32)  NOT NULL DEFAULT 'SHUTTLE',
-                    world_name     VARCHAR(64)  NOT NULL,
-                    core_x         INT          NOT NULL,
-                    core_y         INT          NOT NULL,
-                    core_z         INT          NOT NULL,
-                    heading        FLOAT        NOT NULL DEFAULT 0.0,
-                    status         VARCHAR(16)  NOT NULL DEFAULT 'DOCKED',
-                    warp_status    VARCHAR(16)  NOT NULL DEFAULT 'IDLE',
-                    fuel_level     INT          NOT NULL DEFAULT 0,
-                    structure_data MEDIUMTEXT   NULL,
-                    created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-                    updated_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                    INDEX idx_owner (owner_uuid),
-                    INDEX idx_world (world_name)
-                )
-            """);
+                    ship_id VARCHAR(36) PRIMARY KEY, name VARCHAR(64) NOT NULL,
+                    owner_uuid VARCHAR(36) NOT NULL, ship_class VARCHAR(32) NOT NULL DEFAULT 'SHUTTLE',
+                    world_name VARCHAR(64) NOT NULL, core_x INT NOT NULL, core_y INT NOT NULL,
+                    core_z INT NOT NULL, heading FLOAT NOT NULL DEFAULT 0.0,
+                    status VARCHAR(16) NOT NULL DEFAULT 'DOCKED',
+                    warp_status VARCHAR(16) NOT NULL DEFAULT 'IDLE',
+                    fuel_level INT NOT NULL DEFAULT 0, structure_data MEDIUMTEXT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX idx_owner (owner_uuid), INDEX idx_world (world_name)
+                )""");
 
-            stmt.executeUpdate("""
+            s.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS horizon_crew (
-                    crew_id     VARCHAR(36)  PRIMARY KEY,
-                    ship_id     VARCHAR(36)  NOT NULL,
-                    npc_id      INT          NOT NULL DEFAULT -1,
-                    name        VARCHAR(64)  NOT NULL,
-                    species     VARCHAR(64)  NOT NULL DEFAULT 'Human',
-                    role        VARCHAR(32)  NOT NULL,
-                    skill_level INT          NOT NULL DEFAULT 1,
-                    morale      DOUBLE       NOT NULL DEFAULT 100.0,
-                    salary      INT          NOT NULL DEFAULT 100,
-                    hired_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+                    crew_id VARCHAR(36) PRIMARY KEY, ship_id VARCHAR(36) NOT NULL,
+                    npc_id INT NOT NULL DEFAULT -1, name VARCHAR(64) NOT NULL,
+                    species VARCHAR(64) NOT NULL DEFAULT 'Human', role VARCHAR(32) NOT NULL,
+                    skill_level INT NOT NULL DEFAULT 1, morale DOUBLE NOT NULL DEFAULT 100.0,
+                    salary INT NOT NULL DEFAULT 100, hired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (ship_id) REFERENCES horizon_ships(ship_id) ON DELETE CASCADE,
-                    INDEX idx_ship (ship_id)
-                )
-            """);
+                    INDEX idx_ship (ship_id))""");
 
-            stmt.executeUpdate("""
+            s.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS horizon_warp_beacons (
-                    beacon_id   VARCHAR(36)  PRIMARY KEY,
-                    name        VARCHAR(64)  NOT NULL,
-                    world_name  VARCHAR(64)  NOT NULL,
-                    x           INT          NOT NULL,
-                    y           INT          NOT NULL,
-                    z           INT          NOT NULL,
-                    description TEXT         NOT NULL DEFAULT '',
-                    admin_only  BOOLEAN      NOT NULL DEFAULT FALSE,
-                    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-                    INDEX idx_name (name)
-                )
-            """);
+                    beacon_id VARCHAR(36) PRIMARY KEY, name VARCHAR(64) NOT NULL,
+                    world_name VARCHAR(64) NOT NULL, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '', admin_only BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_name (name))""");
 
-            stmt.executeUpdate("""
+            s.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS horizon_stations (
-                    station_id  VARCHAR(36)  PRIMARY KEY,
-                    ship_id     VARCHAR(36)  NOT NULL,
-                    type        VARCHAR(32)  NOT NULL,
-                    world_name  VARCHAR(64)  NOT NULL,
-                    x           INT          NOT NULL,
-                    y           INT          NOT NULL,
-                    z           INT          NOT NULL,
+                    station_id VARCHAR(36) PRIMARY KEY, ship_id VARCHAR(36) NOT NULL,
+                    type VARCHAR(32) NOT NULL, world_name VARCHAR(64) NOT NULL,
+                    x INT NOT NULL, y INT NOT NULL, z INT NOT NULL,
                     FOREIGN KEY (ship_id) REFERENCES horizon_ships(ship_id) ON DELETE CASCADE,
-                    INDEX idx_ship (ship_id)
-                )
-            """);
+                    INDEX idx_ship (ship_id))""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_economy (
+                    player_uuid VARCHAR(36) PRIMARY KEY, player_name VARCHAR(64) NOT NULL,
+                    balance BIGINT NOT NULL DEFAULT 0, total_earned BIGINT NOT NULL DEFAULT 0,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_captains (
+                    player_uuid VARCHAR(36) PRIMARY KEY, player_name VARCHAR(64) NOT NULL,
+                    rank VARCHAR(32) NOT NULL DEFAULT 'CADET', experience BIGINT NOT NULL DEFAULT 0,
+                    missions_completed INT NOT NULL DEFAULT 0,
+                    total_warp_distance BIGINT NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_missions (
+                    mission_id VARCHAR(36) PRIMARY KEY, type VARCHAR(32) NOT NULL,
+                    title VARCHAR(128) NOT NULL, description TEXT NOT NULL,
+                    target_beacon_id VARCHAR(36) NOT NULL, target_beacon_name VARCHAR(64) NOT NULL,
+                    difficulty INT NOT NULL DEFAULT 1, reward_ec INT NOT NULL DEFAULT 100,
+                    reward_xp BIGINT NOT NULL DEFAULT 25, expires_at BIGINT NOT NULL DEFAULT 0,
+                    status VARCHAR(16) NOT NULL DEFAULT 'AVAILABLE',
+                    accepted_by VARCHAR(36) NULL, accepted_at BIGINT NOT NULL DEFAULT 0,
+                    INDEX idx_status (status))""");
         }
     }
 
-    public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
+    public Connection getConnection() throws SQLException { return dataSource.getConnection(); }
 
     public void close() {
         if (dataSource != null && !dataSource.isClosed()) {

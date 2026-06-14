@@ -5,55 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7427c7d-461b-4e55-8532-47304fa24d2b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/ShipCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/config/HorizonConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/crew/AutoPilot.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/crew/CrewManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/crew/CrewMember.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/crew/CrewRole.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/DatabaseManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/CrewDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/ShipDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/StationDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/WarpDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/fuel/FuelItem.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/fuel/FuelManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/GuiClickListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/PlayerBoardListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/ShipCoreListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/StationListener.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/MoveDirection.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/RelativeBlock.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/Ship.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/ShipClass.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/ShipManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/ShipScanner.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/ShipStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/ShipStructure.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/CollisionDetector.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/MovementRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/ShipStation.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/GuiManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/HelmGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/HorizonGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/NavigationGui.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpBeacon.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/EconomyDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/MissionDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/RankDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/economy/CreditChip.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/economy/EconomyManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/Mission.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/CaptainProfile.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/CaptainRank.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/RankManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,25 +43,37 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Fabianpizza67"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Fabianpizza67/Horizon.git",
+    "accountId": "29c4d3cb-a5a3-451d-b025-7f6e3eb01fe4"
+  }
+}]]></component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000000000413" />
-      <entry key="MS500" value="1.002223874443182" />
-      <entry key="S2" value="1.4354911336293148" />
-      <entry key="S5" value="2.775363597380589" />
-      <entry key="S10" value="4.067245261636124" />
-      <entry key="S30" value="5.746396701394401" />
-      <entry key="S60" value="6.524391503301993" />
-      <entry key="M2" value="7.203199104929211" />
-      <entry key="M5" value="8.661139114601095" />
-      <entry key="M10" value="10.293024174074718" />
-      <entry key="M15" value="11.200964777954537" />
-      <entry key="M30" value="12.401956144911445" />
-      <entry key="H1" value="13.143580167954559" />
-      <entry key="H2" value="13.581377532607277" />
-      <entry key="H4" value="14.221975136563069" />
-      <entry key="D1" value="18.909225089876603" />
-      <entry key="W1" value="21.463709582656225" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.000000000000009" />
+      <entry key="S5" value="1.0000024236284892" />
+      <entry key="S10" value="1.001556800722377" />
+      <entry key="S30" value="1.11589846253452" />
+      <entry key="S60" value="1.3404386325529465" />
+      <entry key="M2" value="1.5834711925647627" />
+      <entry key="M5" value="1.8061349816904269" />
+      <entry key="M10" value="1.8978502000280595" />
+      <entry key="M15" value="1.9306847316672764" />
+      <entry key="M30" value="1.964720027607635" />
+      <entry key="H1" value="1.9822016226863175" />
+      <entry key="H2" value="1.9910608572094453" />
+      <entry key="H4" value="1.9955273313144024" />
+      <entry key="D1" value="3.6768969930171136" />
+      <entry key="W1" value="17.185174044167137" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -111,23 +95,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.0019129302687244847" />
-      <entry key="MS500" value="0.28644687451368794" />
-      <entry key="S2" value="1.0418648091259775" />
-      <entry key="S5" value="2.4694774079342996" />
-      <entry key="S10" value="3.8570562568594298" />
-      <entry key="S30" value="5.6574612891777765" />
-      <entry key="S60" value="6.477028826813516" />
-      <entry key="M2" value="7.1787392229866205" />
-      <entry key="M5" value="8.651150067351148" />
-      <entry key="M10" value="10.28798847692884" />
-      <entry key="M15" value="11.197597088298284" />
-      <entry key="M30" value="12.400266459166303" />
-      <entry key="H1" value="13.142733722490963" />
-      <entry key="H2" value="13.580952801968662" />
-      <entry key="H4" value="14.22175391455493" />
-      <entry key="D1" value="18.909173312595417" />
-      <entry key="W1" value="21.463701012964982" />
+      <entry key="MS100" value="0.9460576467255959" />
+      <entry key="MS500" value="0.9889709163809315" />
+      <entry key="S2" value="0.9972312513520744" />
+      <entry key="S5" value="0.9988934684546823" />
+      <entry key="S10" value="1.0008201144194153" />
+      <entry key="S30" value="1.1110001209137927" />
+      <entry key="S60" value="1.3333516475419311" />
+      <entry key="M2" value="1.577399947096529" />
+      <entry key="M5" value="1.8027764032540685" />
+      <entry key="M10" value="1.8959789761992971" />
+      <entry key="M15" value="1.9293914086318222" />
+      <entry key="M30" value="1.9640495994055496" />
+      <entry key="H1" value="1.9818603033440618" />
+      <entry key="H2" value="1.990888650345603" />
+      <entry key="H4" value="1.9954408383383848" />
+      <entry key="D1" value="3.676877929494368" />
+      <entry key="W1" value="17.185165912781645" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -191,7 +175,7 @@
       <option name="presentableId" value="Default" />
       <updated>1780782430931</updated>
       <workItem from="1780782431951" duration="12589000" />
-      <workItem from="1780993791377" duration="5083000" />
+      <workItem from="1780993791377" duration="8959000" />
     </task>
     <servers />
   </component>

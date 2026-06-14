@@ -46,17 +46,37 @@ public class ShipManager {
         startAutoSave();
     }
 
+    /** Called from onDisable(). Stops the auto-save loop and does a final SYNCHRONOUS flush. */
     public void saveAll() {
         if (autoSaveTask != null) autoSaveTask.cancel();
+        flushDirty();
+    }
+
+    /**
+     * Synchronously persist every dirty ship (including structure_data).
+     * Safe to call mid-session (e.g. an admin /ship save command) since it
+     * doesn't touch the auto-save task.
+     */
+    public void flushDirty() {
         int saved = 0;
         for (Ship s : ships.values()) {
             if (s.isDirty()) {
-                dao.save(s);
+                dao.saveSync(s);
                 saved++;
             }
         }
         if (saved > 0)
-            plugin.getLogger().info("Saved " + saved + " dirty ship(s) on shutdown.");
+            plugin.getLogger().info("Flushed " + saved + " dirty ship(s) to database.");
+    }
+
+    /**
+     * Lightweight, async, hot-path persistence — call after every movement,
+     * rotation, fuel change, or status change. Does NOT touch structure_data,
+     * so it's cheap enough to call on every movement tick without re-serializing
+     * potentially 100KB+ of block data each time.
+     */
+    public void persistState(Ship ship) {
+        dao.updateState(ship);
     }
 
     private void startAutoSave() {

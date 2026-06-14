@@ -54,6 +54,7 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
             case "fuel"      -> cmdFuelGive(player, args);
             case "scan"      -> cmdScan(player, args);   // admin override
             case "crew"      -> cmdCrew(player, args);   // admin only
+            case "save"      -> cmdSave(player, args);   // admin only
             default -> {
                 player.sendMessage(PFX + "§cUnknown subcommand. Use §f/ship help§c.");
                 yield true;
@@ -76,7 +77,7 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
         p.sendMessage("§b/ship warp abort      §7— Emergency warp abort");
         p.sendMessage("§7Move, fuel and navigate using the §bHelm§7, §bEngineering§7 and §bNavigation§7 consoles.");
         if (p.hasPermission("horizon.admin")) {
-            p.sendMessage("§8Admin: /ship scan | /ship warp admin | /ship crew | /ship fuel give");
+            p.sendMessage("§8Admin: /ship scan | /ship warp admin | /ship crew | /ship fuel give | /ship save");
         }
     }
 
@@ -196,8 +197,10 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
                     + "§8/§f" + ship.getShipClass().getHardLimit());
         int stationCount = plugin.getStationManager().getForShip(ship.getShipId()).size();
         int crewCount    = plugin.getCrewManager().getCrewForShip(ship.getShipId()).size();
+        int maxCrew      = ship.getShipClass().getMaxCrewSlots()
+                + plugin.getRankManager().getBonusCrewSlots(ship.getOwnerUUID());
         player.sendMessage("§7Stations: §f" + stationCount + "  §7Crew: §f" + crewCount
-                + "§8/§f" + ship.getShipClass().getMaxCrewSlots());
+                + "§8/§f" + maxCrew);
         return true;
     }
 
@@ -332,6 +335,19 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
     }
 
     // -----------------------------------------------------------------------
+    // Save (admin only) — manual full sync flush before a planned restart
+    // -----------------------------------------------------------------------
+
+    private boolean cmdSave(Player player, String[] args) {
+        if (!player.hasPermission("horizon.admin")) {
+            player.sendMessage(PFX + "§cNo permission."); return true; }
+        player.sendMessage(PFX + "§eFlushing all ship, station, crew, rank and economy data...");
+        plugin.forceSaveAll();
+        player.sendMessage(PFX + "§aDone. Safe to restart.");
+        return true;
+    }
+
+    // -----------------------------------------------------------------------
     // Crew (admin only)
     // -----------------------------------------------------------------------
 
@@ -392,8 +408,10 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
         Ship ship = currentShip(player);
         if (ship == null) { player.sendMessage(PFX + "§cNot on a ship."); return true; }
         var crew = plugin.getCrewManager().getCrewForShip(ship.getShipId());
+        int maxCrew = ship.getShipClass().getMaxCrewSlots()
+                + plugin.getRankManager().getBonusCrewSlots(ship.getOwnerUUID());
         player.sendMessage("§b§lCrew — " + ship.getName() + " §8(" + crew.size()
-                + "/" + ship.getShipClass().getMaxCrewSlots() + ")");
+                + "/" + maxCrew + ")");
         if (crew.isEmpty()) { player.sendMessage("  §7None."); return true; }
         for (CrewMember cm : crew)
             player.sendMessage("  " + cm.moraleColour() + cm.getName()
@@ -439,7 +457,7 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) return List.of();
         if (args.length == 1)
-            return filter(List.of("help","register","board","disembark","list","info","delete","warp","scan","crew"), args[0]);
+            return filter(List.of("help","register","board","disembark","list","info","delete","warp","scan","crew","save","fuel"), args[0]);
 
         return switch (args[0].toLowerCase()) {
             case "info","delete","board" -> args.length == 2

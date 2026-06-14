@@ -60,6 +60,45 @@ public class CrewDAO {
         });
     }
 
+    /**
+     * Synchronous save — used during plugin shutdown so the write completes
+     * before the connection pool is closed (async tasks aren't guaranteed
+     * to run in time during onDisable).
+     */
+    public void saveSync(CrewMember crew) {
+        String sql = """
+            INSERT INTO horizon_crew
+                (crew_id, ship_id, npc_id, name, species, role,
+                 skill_level, morale, salary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                ship_id     = VALUES(ship_id),
+                npc_id      = VALUES(npc_id),
+                name        = VALUES(name),
+                species     = VALUES(species),
+                role        = VALUES(role),
+                skill_level = VALUES(skill_level),
+                morale      = VALUES(morale),
+                salary      = VALUES(salary)
+        """;
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, crew.getCrewId().toString());
+            ps.setString(2, crew.getShipId().toString());
+            ps.setInt   (3, crew.getNpcId());
+            ps.setString(4, crew.getName());
+            ps.setString(5, crew.getSpecies());
+            ps.setString(6, crew.getRole().name());
+            ps.setInt   (7, crew.getSkillLevel());
+            ps.setDouble(8, crew.getMorale());
+            ps.setInt   (9, crew.getSalary());
+            ps.executeUpdate();
+            crew.clearDirty();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to sync-save crew member " + crew.getName(), e);
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Delete
     // -----------------------------------------------------------------------

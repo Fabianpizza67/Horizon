@@ -2,7 +2,7 @@ name: Horizon
 version: '${project.version}'
 main: com.usermc.horizon.Horizon
 api-version: '1.21'
-description: Star Trek inspired space exploration for usermc
+description: Star Trek inspired space exploration for UserMC
 authors: [Fabianpizza]
 
 softdepend:
@@ -13,6 +13,11 @@ commands:
     description: Ship management, helm, warp and crew commands
     usage: /ship <subcommand>
     permission: horizon.ship
+  ec:
+    description: Economy, rank and mission commands
+    usage: /ec <subcommand>
+    permission: horizon.ship
+    aliases: [economy, credits]
 
 permissions:
   horizon.ship:
