@@ -2,6 +2,8 @@ package com.usermc.horizon.listener;
 
 import com.usermc.horizon.Horizon;
 import com.usermc.horizon.ship.Ship;
+import com.usermc.horizon.station.ShipStation;
+import com.usermc.horizon.story.StoryObjectiveType;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -14,10 +16,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 /**
- * Handles events relating to the Ship Core block (LODESTONE).
+ * Handles the Ship Core (Lodestone) block.
  *
- * A lodestone becomes a Ship Core only when registered via /ship register.
- * Tracked in ShipManager's core index.
+ * Right-click          → show ship info
+ * Shift + right-click  → rescan ship structure (replaces /ship scan)
  */
 public class ShipCoreListener implements Listener {
 
@@ -27,45 +29,33 @@ public class ShipCoreListener implements Listener {
         this.plugin = plugin;
     }
 
-    /** Prevent breaking a registered Ship Core without deregistering first. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        if (block.getType() != Material.LODESTONE) return;
-
-        Ship ship = plugin.getShipManager().getAtCoreLocation(block.getLocation());
+    public void onBreak(BlockBreakEvent event) {
+        if (event.getBlock().getType() != Material.LODESTONE) return;
+        Ship ship = plugin.getShipManager().getAtCoreLocation(event.getBlock().getLocation());
         if (ship == null) return;
 
         Player player = event.getPlayer();
-
-        // Admins can force-break with confirmation item (future feature)
         if (!ship.isOwner(player) && !player.hasPermission("horizon.admin")) {
             event.setCancelled(true);
-            player.sendMessage("§c[Horizon] You don't own this ship core.");
+            player.sendMessage("§c[Horizon] You don't own this Ship Core.");
             return;
         }
-
-        // Cancel and prompt for deletion via command
         event.setCancelled(true);
-        player.sendMessage("§e[Horizon] This is the core of ship §b" + ship.getName()
-                + "§e. Use §f/ship delete " + ship.getName() + " §eto remove it.");
+        player.sendMessage("§e[Horizon] To remove this ship, use §f/ship delete " + ship.getName() + "§e.");
     }
 
-    /** Prevent placing a block where a Ship Core already is (shouldn't happen, but safety net). */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onPlace(BlockPlaceEvent event) {
         if (event.getBlockPlaced().getType() != Material.LODESTONE) return;
-
-        Ship existing = plugin.getShipManager().getAtCoreLocation(event.getBlock().getLocation());
-        if (existing != null) {
+        if (plugin.getShipManager().getAtCoreLocation(event.getBlock().getLocation()) != null) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage("§c[Horizon] A ship core already exists here.");
+            event.getPlayer().sendMessage("§c[Horizon] A Ship Core already exists here.");
         }
     }
 
-    /** Right-clicking a registered Ship Core shows ship info. */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onCoreInteract(PlayerInteractEvent event) {
+    public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getClickedBlock() == null) return;
         if (event.getClickedBlock().getType() != Material.LODESTONE) return;
@@ -76,29 +66,48 @@ public class ShipCoreListener implements Listener {
         event.setCancelled(true);
         Player player = event.getPlayer();
 
-        player.sendMessage("§b§l[ " + ship.getName() + " ]");
-        player.sendMessage("§7Class: §f"   + ship.getShipClass().getDisplayName());
-        player.sendMessage("§7Status: §f"  + ship.getStatus().name());
-        player.sendMessage("§7Heading: §f" + String.format("%.1f°", ship.getHeading()));
-        if (ship.getStructure() != null) {
-            player.sendMessage("§7Blocks: §f" + ship.getStructure().getBlockCount()
-                    + " §8(limit: " + ship.getShipClass().getHardLimit() + ")");
-            if (ship.getShipClass().isOverSoftLimit(ship.getStructure().getBlockCount())) {
-                player.sendMessage("§e⚠ Over soft limit — speed penalty active.");
+        if (player.isSneaking()) {
+            // Shift + right-click = rescan
+            if (!ship.isOwner(player) && !player.hasPermission("horizon.admin")) {
+                player.sendMessage("§c[Horizon] Only the ship owner can rescan.");
+                return;
             }
+            if (ship.isProcessing()) {
+                player.sendMessage("§c[Horizon] Ship is moving — wait before rescanning.");
+                return;
+            }
+            int maxBlocks = player.hasPermission("horizon.admin")
+                    ? plugin.getHorizonConfig().getAdminLimit()
+                    : plugin.getHorizonConfig().getPlayerHardLimit();
+
+            player.sendMessage("§e[Horizon] Scanning §f" + ship.getName() + "§e...");
+            plugin.getShipManager().getScanner().scan(ship.getCoreLocation(), maxBlocks,
+                    structure -> {
+                        int count = structure.getBlockCount();
+                        com.usermc.horizon.ship.ShipClass sc =
+                                com.usermc.horizon.ship.ShipClass.fromBlockCount(
+                                        count, player.hasPermission("horizon.admin"));
+                        ship.setShipClass(sc);
+                        ship.setStructure(structure);
+                        player.sendMessage("§a[Horizon] Scan complete — §f" + count
+                                + " §ablocks, §f" + sc.getDisplayName() + "§a.");
+                        plugin.getStoryManager().progressObjective(player, StoryObjectiveType.SCAN_SHIP);
+                    },
+                    err -> player.sendMessage("§c[Horizon] Scan failed: " + err));
         } else {
-            player.sendMessage("§e⚠ No structure scanned. Use §f/ship scan§e to scan.");
+            // Right-click = info
+            printInfo(player, ship);
         }
-        player.sendMessage("§7Passengers: §f" + ship.getPassengers().size());
     }
 
-    /**
-     * Prevent players inside a moving ship from breaking blocks on it.
-     * Ship blocks should only be modified while docked.
-     */
+    /** Also prevent breaking any block that is a registered station while ship is moving. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onShipBlockBreak(BlockBreakEvent event) {
-        if (event.getBlock().getType() == Material.LODESTONE) return; // handled above
+        if (event.getBlock().getType() == Material.LODESTONE) return;
+
+        ShipStation station = plugin.getStationManager()
+                .getAtLocation(event.getBlock().getLocation());
+        if (station != null) return; // handled by StationListener
 
         Ship ship = plugin.getShipManager().getShipAt(event.getBlock().getLocation());
         if (ship == null) return;
@@ -108,12 +117,27 @@ public class ShipCoreListener implements Listener {
             event.getPlayer().sendMessage("§c[Horizon] Cannot modify ship blocks while moving.");
             return;
         }
-
-        // If ship is flying, warn that structure will need rescan
         if (ship.isReady()) {
             ship.markStructureDirty();
-            event.getPlayer().sendMessage(
-                    "§e[Horizon] Ship structure changed — use §f/ship scan §ewhen done building.");
+            event.getPlayer().sendActionBar(
+                    "§e[Horizon] Structure changed — §fShift+right-click §ethe Ship Core to rescan.");
         }
+    }
+
+    private void printInfo(Player p, Ship ship) {
+        p.sendMessage("§b§l[ " + ship.getName() + " ]");
+        p.sendMessage("§7Class:  §f" + ship.getShipClass().getDisplayName()
+                + "  §7Status: §f" + ship.getStatus());
+        p.sendMessage("§7Fuel:   " + plugin.getFuelManager().fuelBar(ship));
+        if (ship.getStructure() != null) {
+            p.sendMessage("§7Blocks: §f" + ship.getStructure().getBlockCount()
+                    + " §8/ §f" + ship.getShipClass().getHardLimit());
+        }
+        if (ship.isStructureDirty()) {
+            p.sendMessage("§e⚠ Structure needs rescan — §fShift+right-click§e this core.");
+        }
+        p.sendMessage("§7Stations installed: §f"
+                + plugin.getStationManager().getForShip(ship.getShipId()).size());
+        p.sendMessage("§8Shift+right-click to rescan structure.");
     }
 }

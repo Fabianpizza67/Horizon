@@ -5,26 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7427c7d-461b-4e55-8532-47304fa24d2b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/EconomyDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/MissionDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/RankDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/economy/CreditChip.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/economy/EconomyManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/Mission.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionGenerator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/CaptainProfile.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/CaptainRank.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/rank/RankManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/StoryDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/GeminiClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryArc.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryChapter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryObjectiveType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/ShipCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/ShipCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/ShipCoreListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/ShipCoreListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -37,24 +36,25 @@
       <list>
         <option value="package-info" />
         <option value="Class" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Fabianpizza67"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Fabianpizza67&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Fabianpizza67/Horizon.git",
-    "accountId": "29c4d3cb-a5a3-451d-b025-7f6e3eb01fe4"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Fabianpizza67/Horizon.git&quot;,
+    &quot;accountId&quot;: &quot;da5a722e-e52b-4765-adfd-df618b463e5e&quot;
   }
-}]]></component>
+}</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
@@ -139,6 +139,7 @@
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Fabia/Documents/GitHub/Horizon&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -176,6 +177,8 @@
       <updated>1780782430931</updated>
       <workItem from="1780782431951" duration="12589000" />
       <workItem from="1780993791377" duration="8959000" />
+      <workItem from="1781431948653" duration="908000" />
+      <workItem from="1781613752498" duration="932000" />
     </task>
     <servers />
   </component>

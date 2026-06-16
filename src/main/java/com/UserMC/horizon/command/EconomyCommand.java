@@ -6,7 +6,6 @@ import com.usermc.horizon.rank.CaptainRank;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**

@@ -5,6 +5,7 @@ import com.usermc.horizon.economy.CreditChip;
 import com.usermc.horizon.rank.CaptainProfile;
 import com.usermc.horizon.ship.Ship;
 import com.usermc.horizon.ship.ShipStructure;
+import com.usermc.horizon.story.StoryObjectiveType;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -155,7 +156,10 @@ public class EngineeringGui extends HorizonGui {
             }
             int added = plugin.getFuelManager().refuelFromInventory(ship, player);
             if (added == 0) player.sendActionBar("§c[Engineering] No Dilithium Crystals in inventory.");
-            else player.sendActionBar("§a[Engineering] +" + added + " fuel units injected.");
+            else {
+                player.sendActionBar("§a[Engineering] +" + added + " fuel units injected.");
+                plugin.getStoryManager().progressObjective(player, StoryObjectiveType.REFUEL);
+            }
             return true;
         }
 

@@ -5,6 +5,7 @@ import com.usermc.horizon.ship.RelativeBlock;
 import com.usermc.horizon.ship.Ship;
 import com.usermc.horizon.ship.ShipScanner;
 import com.usermc.horizon.ship.ShipStructure;
+import com.usermc.horizon.story.StoryObjectiveType;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -252,6 +253,11 @@ public class ShipMovementEngine {
         // so persist the FULL ship record (async — structure serialization
         // happens off the main thread inside save()).
         plugin.getShipManager().getDao().save(ship);
+
+        for (java.util.UUID uuid : ship.getPassengers()) {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(uuid);
+            if (p != null) plugin.getStoryManager().progressObjective(p, StoryObjectiveType.ROTATE_SHIP);
+        }
     }
 
     // -----------------------------------------------------------------------

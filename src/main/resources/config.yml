@@ -30,4 +30,10 @@ crew:
   base-salary: 100
 
 messages:
-  prefix: '&#00b4d8[usermc] &r'
+  prefix: '&#00b4d8[Horizon] &r'
+
+gemini:
+  # Get a key from https://aistudio.google.com/apikey
+  # Leave blank to disable the Story Log entirely (everything else works fine without it)
+  api-key: ''
+  model: 'gemma-4-31b-it'

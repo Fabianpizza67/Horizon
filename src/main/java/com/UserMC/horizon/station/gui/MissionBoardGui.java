@@ -2,7 +2,6 @@ package com.usermc.horizon.station.gui;
 
 import com.usermc.horizon.Horizon;
 import com.usermc.horizon.mission.Mission;
-import com.usermc.horizon.mission.MissionStatus;
 import com.usermc.horizon.ship.Ship;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +18,7 @@ import java.util.List;
  * Clicking an available mission accepts it (up to the limit).
  * Accepted missions are shown in row 3 with their target and status.
  */
-public class MissionBoardGui extends HorizonGui {
+public class MissionBoardGui extends com.usermc.horizon.station.gui.HorizonGui {
 
     private List<Mission> boardMissions;
     private List<Mission> activeMissions;
@@ -103,11 +102,78 @@ public class MissionBoardGui extends HorizonGui {
                 "§7Re-checks board for new missions."
         ));
 
+        // --- Captain's Log (AI story arc) ---
+        buildStorySlot();
+
         fillAll();
+    }
+
+    private void buildStorySlot() {
+        Horizon plugin = Horizon.getInstance();
+        var story = plugin.getStoryManager();
+
+        if (!story.isEnabled()) return; // silently absent without a Gemini key
+
+        var arc = story.getArc(player.getUniqueId());
+
+        if (story.isGenerating(player.getUniqueId())) {
+            inventory.setItem(33, makeItem(Material.CLOCK,
+                    "§b📡 Transmission Incoming...",
+                    "§7Deep-space telemetry is being processed.",
+                    "§7Check back in a moment."
+            ));
+            return;
+        }
+
+        if (story.canStartNewArc(player.getUniqueId())) {
+            boolean isNewSeason = arc != null; // a previous arc completed
+            inventory.setItem(33, makeItem(Material.WRITTEN_BOOK,
+                    isNewSeason ? "§b📡 Begin New Exploration Log" : "§b📡 Begin Exploration Log",
+                    "§7A faint signal lingers at the edge of sensor range.",
+                    "§7Click to start receiving transmissions."
+            ));
+            return;
+        }
+
+        if (arc != null) {
+            var chapter = arc.getCurrentChapter();
+            if (chapter != null) {
+                inventory.setItem(33, makeItem(Material.WRITTEN_BOOK,
+                        "§b📖 Captain's Log — Ch. " + chapter.getChapterNumber() + "/" + arc.getTotalChapters(),
+                        "§f" + chapter.getTitle(),
+                        "§7" + chapter.getObjectiveFlavor(),
+                        "",
+                        "§7Progress: §f" + chapter.getProgress() + "§7/§f" + chapter.getRequired(),
+                        "§7Reward: §6" + chapter.getRewardCredits() + " EC  §b" + chapter.getRewardXp() + " XP",
+                        "",
+                        "§eClick to read."
+                ));
+            }
+        }
     }
 
     @Override
     public boolean handleClick(int slot, ClickType click) {
+        // Captain's Log slot
+        if (slot == 33) {
+            Horizon plugin = Horizon.getInstance();
+            var story = plugin.getStoryManager();
+            if (!story.isEnabled()) return false;
+
+            if (story.canStartNewArc(player.getUniqueId())) {
+                story.startNewArc(player);
+                player.closeInventory();
+                return false;
+            }
+
+            var arc = story.getArc(player.getUniqueId());
+            if (arc != null && arc.getCurrentChapter() != null) {
+                story.openLog(player);
+                return false;
+            }
+            return false;
+        }
+
         // Refresh button
         if (slot == 35) { refresh(); return true; }
 

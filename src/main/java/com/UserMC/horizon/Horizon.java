@@ -10,6 +10,7 @@ import com.usermc.horizon.economy.EconomyManager;
 import com.usermc.horizon.fuel.FuelManager;
 import com.usermc.horizon.listener.*;
 import com.usermc.horizon.mission.MissionManager;
+import com.usermc.horizon.story.StoryManager;
 import com.usermc.horizon.rank.RankManager;
 import com.usermc.horizon.ship.ShipManager;
 import com.usermc.horizon.ship.engine.ShipMovementEngine;
@@ -36,6 +37,7 @@ public final class Horizon extends JavaPlugin {
     private EconomyManager      economyManager;
     private RankManager         rankManager;
     private MissionManager      missionManager;
+    private StoryManager        storyManager;
 
     @Override
     public void onEnable() {
@@ -61,6 +63,7 @@ public final class Horizon extends JavaPlugin {
         stationManager = new StationManager(this);
         guiManager     = new GuiManager();
         missionManager = new MissionManager(this);
+        storyManager   = new StoryManager(this);
 
         // Ship system
         shipManager = new ShipManager(this);
@@ -75,6 +78,7 @@ public final class Horizon extends JavaPlugin {
         stationManager.loadAll();
         rankManager.loadAll();
         missionManager.loadAll();
+        storyManager.loadAll();
 
         // Crafting recipes for station blocks + fuel
         StationItem.registerRecipes(this);
@@ -112,6 +116,7 @@ public final class Horizon extends JavaPlugin {
         if (crewManager   != null) crewManager.saveAll();
         if (rankManager   != null) rankManager.saveAll();
         if (economyManager!= null) economyManager.saveAll();
+        if (storyManager  != null) storyManager.saveAll();
         if (shipManager   != null) shipManager.saveAll();
         if (databaseManager!=null) databaseManager.close();
         getLogger().info("Horizon offline.");
@@ -128,6 +133,7 @@ public final class Horizon extends JavaPlugin {
         if (crewManager   != null) crewManager.flushDirty();
         if (rankManager   != null) rankManager.flushDirty();
         if (economyManager!= null) economyManager.flushDirty();
+        if (storyManager  != null) storyManager.flushDirty();
     }
 
     public static Horizon getInstance()              { return instance; }
@@ -144,4 +150,5 @@ public final class Horizon extends JavaPlugin {
     public EconomyManager   getEconomyManager()      { return economyManager; }
     public RankManager      getRankManager()         { return rankManager; }
     public MissionManager   getMissionManager()      { return missionManager; }
+    public StoryManager     getStoryManager()        { return storyManager; }
 }

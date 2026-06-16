@@ -4,6 +4,7 @@ import com.usermc.horizon.Horizon;
 import com.usermc.horizon.crew.CrewMember;
 import com.usermc.horizon.crew.CrewRole;
 import com.usermc.horizon.ship.*;
+import com.usermc.horizon.story.StoryObjectiveType;
 import com.usermc.horizon.warp.WarpBeacon;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -389,6 +390,7 @@ public class ShipCommand implements CommandExecutor, TabCompleter {
                     ship.getCoreLocation().add(0, 1, 0));
             player.sendMessage(PFX + "§aHired §f" + cm.getName() + " §a[" + args[3] + "] as "
                     + role.getDisplayName() + " (skill " + skill + ").");
+            plugin.getStoryManager().progressObjective(player, StoryObjectiveType.HIRE_CREW);
         } catch (IllegalStateException e) { player.sendMessage(PFX + "§c" + e.getMessage()); }
         return true;
     }

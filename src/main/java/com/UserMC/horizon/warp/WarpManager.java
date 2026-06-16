@@ -6,6 +6,7 @@ import com.usermc.horizon.ship.RelativeBlock;
 import com.usermc.horizon.ship.Ship;
 import com.usermc.horizon.ship.ShipScanner;
 import com.usermc.horizon.ship.ShipStructure;
+import com.usermc.horizon.story.StoryObjectiveType;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -213,6 +214,7 @@ public class WarpManager {
                 Player p = plugin.getServer().getPlayer(uuid);
                 if (p == null) continue;
                 plugin.getRankManager().awardWarpXp(p, distance);
+                plugin.getStoryManager().progressObjective(p, StoryObjectiveType.WARP_JUMP);
             }
             plugin.getMissionManager().checkArrival(ship, target);
 

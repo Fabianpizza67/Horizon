@@ -127,6 +127,10 @@ public class RankManager {
         award(player, xp, false);
     }
 
+    public void awardStoryXp(Player player, long xp) {
+        award(player, xp, false);
+    }
+
     private void award(Player player, long xp, boolean announce) {
         CaptainProfile profile = getOrCreate(player);
         profile.setPlayerName(player.getName());

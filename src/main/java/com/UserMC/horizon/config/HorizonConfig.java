@@ -28,6 +28,10 @@ public class HorizonConfig {
     // Messages
     private final String messagePrefix;
 
+    // Gemini
+    private final String geminiApiKey;
+    private final String geminiModel;
+
     public HorizonConfig(Horizon plugin) {
         FileConfiguration c = plugin.getConfig();
 
@@ -53,7 +57,10 @@ public class HorizonConfig {
         moraleDecayPerTick       = c.getDouble("crew.morale-decay-per-tick",       0.5);
         baseSalary               = c.getInt   ("crew.base-salary",                 100);
 
-        messagePrefix = c.getString("messages.prefix", "[Horizon] ");
+        messagePrefix = c.getString("messages.prefix", "&#00b4d8[Horizon] &r");
+
+        geminiApiKey  = c.getString("gemini.api-key", "");
+        geminiModel   = c.getString("gemini.model",   "gemma-4-31b-it");
     }
 
     // Database
@@ -84,4 +91,8 @@ public class HorizonConfig {
 
     // Messages
     public String getMessagePrefix() { return messagePrefix; }
+
+    // Gemini
+    public String getGeminiApiKey()  { return geminiApiKey; }
+    public String getGeminiModel()   { return geminiModel; }
 }

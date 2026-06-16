@@ -3,6 +3,7 @@ package com.usermc.horizon.mission;
 import com.usermc.horizon.Horizon;
 import com.usermc.horizon.database.dao.MissionDAO;
 import com.usermc.horizon.ship.Ship;
+import com.usermc.horizon.story.StoryObjectiveType;
 import com.usermc.horizon.warp.WarpBeacon;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -10,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Central mission board manager.
@@ -18,23 +18,23 @@ import java.util.stream.Collectors;
  * Board holds up to MAX_BOARD_SIZE available missions generated from warp beacons.
  * Refreshes every REFRESH_INTERVAL_TICKS (default 30 min).
  *
- * Completion trigger: WarpManager calls checkArrival(ship, beacon) when a
- * ship successfully completes a warp jump. Any passenger who has an ACTIVE
- * mission targeting that beacon gets it completed and receives rewards.
+ * Completion trigger: WarpManager calls checkArrival(ship, beacon) when a ship
+ * successfully completes a warp jump. Any passenger who has an ACTIVE mission
+ * targeting that beacon gets it completed and receives rewards.
  *
  * Players can hold at most MAX_ACTIVE_PER_PLAYER active missions simultaneously.
  */
 public class MissionManager {
 
-    private static final int  MAX_BOARD_SIZE        = 12;
-    private static final int  MAX_ACTIVE_PER_PLAYER = 2;
-    private static final long REFRESH_INTERVAL_TICKS= 20L * 60 * 30; // 30 minutes
+    private static final int  MAX_BOARD_SIZE         = 12;
+    private static final int  MAX_ACTIVE_PER_PLAYER  = 2;
+    private static final long REFRESH_INTERVAL_TICKS = 20L * 60 * 30; // 30 minutes
 
     private final Horizon          plugin;
     private final MissionDAO       dao;
     private final MissionGenerator generator;
 
-    /** All missions currently on the board or active. */
+    /** All missions currently on the board or active, keyed by mission UUID. */
     private final Map<UUID, Mission> missions = new LinkedHashMap<>();
 
     /** Quick lookup: playerUUID → their active missions. */
@@ -56,11 +56,19 @@ public class MissionManager {
         for (Mission m : dao.loadActive()) {
             missions.put(m.getMissionId(), m);
             if (m.getStatus() == MissionStatus.ACTIVE && m.getAcceptedBy() != null) {
-                playerMissions.computeIfAbsent(m.getAcceptedBy(), k -> new ArrayList<>()).add(m);
+                playerMissions
+                        .computeIfAbsent(m.getAcceptedBy(), k -> new ArrayList<>())
+                        .add(m);
             }
         }
+
         plugin.getLogger().info("Loaded " + missions.size() + " mission(s).");
-        if (availableMissions().size() < 3) refreshBoard(); // seed board on first run
+
+        // Seed the board if it comes up empty (first run or all missions expired)
+        if (availableMissions().size() < 3) {
+            refreshBoard();
+        }
+
         startRefreshTask();
     }
 
@@ -69,8 +77,9 @@ public class MissionManager {
     }
 
     private void startRefreshTask() {
-        refreshTask = Bukkit.getScheduler().runTaskTimer(plugin,
-                this::cleanAndRefresh, REFRESH_INTERVAL_TICKS, REFRESH_INTERVAL_TICKS);
+        refreshTask = Bukkit.getScheduler().runTaskTimer(
+                plugin, this::cleanAndRefresh,
+                REFRESH_INTERVAL_TICKS, REFRESH_INTERVAL_TICKS);
     }
 
     // -----------------------------------------------------------------------
@@ -79,7 +88,6 @@ public class MissionManager {
 
     /** Remove expired/completed missions and generate new ones to fill the board. */
     public void cleanAndRefresh() {
-        // Remove expired and completed
         missions.entrySet().removeIf(e -> {
             Mission m = e.getValue();
             if (m.getStatus() == MissionStatus.COMPLETED
@@ -98,7 +106,7 @@ public class MissionManager {
         Collection<WarpBeacon> beacons = plugin.getWarpManager().getAllBeacons();
         if (beacons.isEmpty()) return;
 
-        int needed = MAX_BOARD_SIZE - (int) availableMissions().count();
+        int needed = MAX_BOARD_SIZE - availableMissions().size();
         if (needed <= 0) return;
 
         List<WarpBeacon> beaconList = new ArrayList<>(beacons);
@@ -122,7 +130,8 @@ public class MissionManager {
 
     /**
      * Player accepts a mission from the board.
-     * Returns the accepted Mission, or null with a reason message if failed.
+     * Returns the accepted Mission, or null if they're already at the active cap
+     * or the mission is no longer available.
      */
     public Mission accept(Player player, UUID missionId) {
         Mission m = missions.get(missionId);
@@ -132,7 +141,9 @@ public class MissionManager {
         if (active.size() >= MAX_ACTIVE_PER_PLAYER) return null;
 
         m.accept(player.getUniqueId());
-        playerMissions.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>()).add(m);
+        playerMissions
+                .computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>())
+                .add(m);
         dao.save(m);
         return m;
     }
@@ -146,11 +157,13 @@ public class MissionManager {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
 
-            List<Mission> active = playerMissions.getOrDefault(uuid, List.of());
-            List<Mission> toComplete = active.stream()
-                    .filter(m -> m.getStatus() == MissionStatus.ACTIVE
-                            && m.getTargetBeaconId().equals(beacon.getBeaconId()))
-                    .toList();
+            List<Mission> toComplete = new ArrayList<>();
+            for (Mission m : playerMissions.getOrDefault(uuid, List.of())) {
+                if (m.getStatus() == MissionStatus.ACTIVE
+                        && m.getTargetBeaconId().equals(beacon.getBeaconId())) {
+                    toComplete.add(m);
+                }
+            }
 
             for (Mission m : toComplete) {
                 completeMission(player, m);
@@ -161,6 +174,7 @@ public class MissionManager {
     private void completeMission(Player player, Mission m) {
         m.complete();
         dao.save(m);
+
         List<Mission> active = playerMissions.get(player.getUniqueId());
         if (active != null) active.remove(m);
 
@@ -168,11 +182,12 @@ public class MissionManager {
         plugin.getEconomyManager().addBalance(player, m.getRewardEc());
         plugin.getRankManager().awardMissionXp(player, m.getRewardXp());
         plugin.getRankManager().getOrCreate(player).addMissionsCompleted(1);
+        plugin.getStoryManager().progressObjective(player, StoryObjectiveType.COMPLETE_MISSION);
 
         // Notify
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
         player.sendTitle("§a§lMISSION COMPLETE", "§7" + m.getTitle(), 5, 50, 15);
-        player.sendMessage("§a§l[Mission] §r§fMission complete: §b" + m.getTitle());
+        player.sendMessage("§a§l[Mission] §r§fComplete: §b" + m.getTitle());
         player.sendMessage("§7Reward: §6+" + m.getRewardEc() + " EC  §b+" + m.getRewardXp() + " XP");
     }
 
@@ -189,12 +204,20 @@ public class MissionManager {
 
     public List<Mission> getActiveMissions(UUID playerUUID) {
         return playerMissions.getOrDefault(playerUUID, Collections.emptyList())
-                .stream().filter(m -> m.getStatus() == MissionStatus.ACTIVE).toList();
+                .stream()
+                .filter(m -> m.getStatus() == MissionStatus.ACTIVE)
+                .toList();
     }
 
     public int getMaxActivePerPlayer() { return MAX_ACTIVE_PER_PLAYER; }
 
-    private java.util.stream.Stream<Mission> availableMissions() {
-        return missions.values().stream().filter(Mission::isAvailable);
+    /**
+     * Returns all AVAILABLE (not yet accepted) missions currently on the board.
+     * Returns a List — use .size() freely.
+     */
+    private List<Mission> availableMissions() {
+        return missions.values().stream()
+                .filter(Mission::isAvailable)
+                .toList();
     }
 }
