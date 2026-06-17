@@ -18,24 +18,14 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.UUID;
 
-/**
- * Handles the full lifecycle of ship station blocks:
- *
- *   BlockPlaceEvent   — if the placed item is a Horizon station item, register it
- *                       in the StationManager for whichever ship it lands on.
- *   BlockBreakEvent   — if the broken block is a registered station, unregister it.
- *   PlayerInteractEvent — right-clicking a registered station opens the matching GUI.
- */
 public class StationListener implements Listener {
 
     private final Horizon plugin;
 
-    public StationListener(Horizon plugin) {
-        this.plugin = plugin;
-    }
+    public StationListener(Horizon plugin) { this.plugin = plugin; }
 
     // -----------------------------------------------------------------------
-    // Placement — register the station
+    // Placement
     // -----------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -46,47 +36,38 @@ public class StationListener implements Listener {
         Player player = event.getPlayer();
         Block  block  = event.getBlockPlaced();
 
-        // Must be placed on a registered ship
         Ship ship = plugin.getShipManager().getShipAt(block.getLocation());
         if (ship == null) {
-            // Allow the block to place visually, but warn and cancel registration
-            player.sendMessage("§e[Horizon] This station is not on a registered ship — it won't be functional.");
+            player.sendMessage("§e[Horizon] Station placed but is not on a registered ship — won't be functional.");
             return;
         }
 
-        // Owner check
         if (!ship.isOwner(player) && !player.hasPermission("horizon.admin")) {
             event.setCancelled(true);
             player.sendMessage("§c[Horizon] Only the ship owner can install stations.");
             return;
         }
 
-        // Check for duplicate station type (one of each type per ship)
         if (plugin.getStationManager().getOfType(ship.getShipId(), type) != null) {
             event.setCancelled(true);
             player.sendMessage("§c[Horizon] This ship already has a " + type.getDisplayName() + ".");
             return;
         }
 
-        ShipStation station = new ShipStation(
-                UUID.randomUUID(), ship.getShipId(), type, block.getLocation());
+        ShipStation station = new ShipStation(UUID.randomUUID(), ship.getShipId(), type, block.getLocation());
         plugin.getStationManager().register(station);
-
-        // Station changed structure — mark for rescan
         ship.markStructureDirty();
-
-        player.sendMessage("§a[Horizon] " + type.getDisplayName()
-                + " installed on §f" + ship.getName() + "§a. Right-click to use.");
+        player.sendMessage("§a[Horizon] " + type.getDisplayName() + " installed on §f" + ship.getName()
+                + "§a. Right-click to use.");
     }
 
     // -----------------------------------------------------------------------
-    // Breaking — unregister the station
+    // Breaking
     // -----------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        ShipStation station = plugin.getStationManager()
-                .getAtLocation(event.getBlock().getLocation());
+        ShipStation station = plugin.getStationManager().getAtLocation(event.getBlock().getLocation());
         if (station == null) return;
 
         Player player = event.getPlayer();
@@ -97,7 +78,6 @@ public class StationListener implements Listener {
             player.sendMessage("§c[Horizon] Only the ship owner can remove stations.");
             return;
         }
-
         if (ship != null && ship.isProcessing()) {
             event.setCancelled(true);
             player.sendMessage("§c[Horizon] Cannot remove stations while the ship is moving.");
@@ -106,12 +86,11 @@ public class StationListener implements Listener {
 
         plugin.getStationManager().unregister(station);
         if (ship != null) ship.markStructureDirty();
-
         player.sendMessage("§e[Horizon] " + station.getType().getDisplayName() + " removed.");
     }
 
     // -----------------------------------------------------------------------
-    // Interaction — open the matching GUI
+    // Interaction — open the correct GUI
     // -----------------------------------------------------------------------
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -119,8 +98,7 @@ public class StationListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getClickedBlock() == null) return;
 
-        Block       block   = event.getClickedBlock();
-        ShipStation station = plugin.getStationManager().getAtLocation(block.getLocation());
+        ShipStation station = plugin.getStationManager().getAtLocation(event.getClickedBlock().getLocation());
         if (station == null) return;
 
         event.setCancelled(true);
@@ -132,25 +110,43 @@ public class StationListener implements Listener {
             return;
         }
 
-        // Player must be aboard or within bounds
         if (!ship.isWithinBounds(player.getLocation()) && !player.hasPermission("horizon.admin")) {
             player.sendMessage("§c[Horizon] You must be aboard the ship to use this station.");
             return;
         }
 
-        openGui(player, ship, station.getType());
+        HorizonGui gui = switch (station.getType()) {
+            case HELM             -> new HelmGui(ship, player);
+            case NAVIGATION       -> new NavigationGui(ship, player);
+            case ENGINEERING      -> new EngineeringGui(ship, player);
+            case MISSION_TERMINAL -> new MissionBoardGui(ship, player);
+            case FACTION_TERMINAL -> new FactionTerminalGui(ship, player);
+        };
+
+        plugin.getGuiManager().open(player, gui);
     }
 
     // -----------------------------------------------------------------------
-    // GUI dispatch
+    // Prevent block modifications while ship is moving
     // -----------------------------------------------------------------------
 
-    private void openGui(Player player, Ship ship, StationType type) {
-        HorizonGui gui = switch (type) {
-            case HELM        -> new HelmGui(ship, player);
-            case NAVIGATION  -> new NavigationGui(ship, player);
-            case ENGINEERING -> new EngineeringGui(ship, player);
-        };
-        plugin.getGuiManager().open(player, gui);
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onShipBlockBreak(BlockBreakEvent event) {
+        ShipStation station = plugin.getStationManager().getAtLocation(event.getBlock().getLocation());
+        if (station != null) return; // already handled above
+
+        Ship ship = plugin.getShipManager().getShipAt(event.getBlock().getLocation());
+        if (ship == null) return;
+
+        if (ship.isProcessing()) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage("§c[Horizon] Cannot modify ship blocks while moving.");
+            return;
+        }
+        if (ship.isReady()) {
+            ship.markStructureDirty();
+            event.getPlayer().sendActionBar(
+                    "§e[Horizon] Structure changed — §fShift+right-click §ethe Ship Core to rescan.");
+        }
     }
 }

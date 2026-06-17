@@ -1,6 +1,7 @@
 package com.usermc.horizon;
 
 import com.usermc.horizon.command.EconomyCommand;
+import com.usermc.horizon.command.FactionCommand;
 import com.usermc.horizon.command.ShipCommand;
 import com.usermc.horizon.config.HorizonConfig;
 import com.usermc.horizon.crew.AutoPilot;
@@ -10,6 +11,7 @@ import com.usermc.horizon.economy.EconomyManager;
 import com.usermc.horizon.fuel.FuelManager;
 import com.usermc.horizon.listener.*;
 import com.usermc.horizon.mission.MissionManager;
+import com.usermc.horizon.faction.FactionManager;
 import com.usermc.horizon.story.StoryManager;
 import com.usermc.horizon.rank.RankManager;
 import com.usermc.horizon.ship.ShipManager;
@@ -38,6 +40,7 @@ public final class Horizon extends JavaPlugin {
     private RankManager         rankManager;
     private MissionManager      missionManager;
     private StoryManager        storyManager;
+    private FactionManager      factionManager;
 
     @Override
     public void onEnable() {
@@ -64,6 +67,7 @@ public final class Horizon extends JavaPlugin {
         guiManager     = new GuiManager();
         missionManager = new MissionManager(this);
         storyManager   = new StoryManager(this);
+        factionManager = new FactionManager(this);
 
         // Ship system
         shipManager = new ShipManager(this);
@@ -79,6 +83,7 @@ public final class Horizon extends JavaPlugin {
         rankManager.loadAll();
         missionManager.loadAll();
         storyManager.loadAll();
+        factionManager.loadAll();
 
         // Crafting recipes for station blocks + fuel
         StationItem.registerRecipes(this);
@@ -97,6 +102,10 @@ public final class Horizon extends JavaPlugin {
         var ecCmd = new EconomyCommand(this);
         getCommand("ec").setExecutor(ecCmd);
         getCommand("ec").setTabCompleter(ecCmd);
+
+        var factionCmd = new FactionCommand(this);
+        getCommand("faction").setExecutor(factionCmd);
+        getCommand("faction").setTabCompleter(factionCmd);
 
         getLogger().info("Horizon " + getPluginMeta().getVersion() + " online.");
     }
@@ -117,6 +126,7 @@ public final class Horizon extends JavaPlugin {
         if (rankManager   != null) rankManager.saveAll();
         if (economyManager!= null) economyManager.saveAll();
         if (storyManager  != null) storyManager.saveAll();
+        if (factionManager!= null) factionManager.saveAll();
         if (shipManager   != null) shipManager.saveAll();
         if (databaseManager!=null) databaseManager.close();
         getLogger().info("Horizon offline.");
@@ -134,6 +144,7 @@ public final class Horizon extends JavaPlugin {
         if (rankManager   != null) rankManager.flushDirty();
         if (economyManager!= null) economyManager.flushDirty();
         if (storyManager  != null) storyManager.flushDirty();
+        if (factionManager!= null) factionManager.flushDirty();
     }
 
     public static Horizon getInstance()              { return instance; }
@@ -151,4 +162,5 @@ public final class Horizon extends JavaPlugin {
     public RankManager      getRankManager()         { return rankManager; }
     public MissionManager   getMissionManager()      { return missionManager; }
     public StoryManager     getStoryManager()        { return storyManager; }
+    public FactionManager   getFactionManager()      { return factionManager; }
 }

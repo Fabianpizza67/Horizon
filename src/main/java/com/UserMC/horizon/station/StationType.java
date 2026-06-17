@@ -3,10 +3,12 @@ package com.usermc.horizon.station;
 import org.bukkit.Material;
 
 public enum StationType {
-    HELM            ("Helm Console",      Material.BARREL,            "§7Pilot and helm control"),
-    NAVIGATION      ("Navigation Console",Material.CARTOGRAPHY_TABLE, "§7Warp drive and star charts"),
-    ENGINEERING     ("Engineering Console",Material.BLAST_FURNACE,    "§7Fuel, power and ship status"),
-    MISSION_TERMINAL("Mission Terminal",  Material.LECTERN,           "§7Mission board and contracts");
+
+    HELM            ("Helm Console",         Material.BARREL,            "§7Pilot and helm control"),
+    NAVIGATION      ("Navigation Console",   Material.CARTOGRAPHY_TABLE, "§7Warp drive and star charts"),
+    ENGINEERING     ("Engineering Console",  Material.BLAST_FURNACE,     "§7Fuel, power and ship status"),
+    MISSION_TERMINAL("Mission Terminal",     Material.LECTERN,           "§7Mission board and Captain's Log"),
+    FACTION_TERMINAL("Faction Terminal",     Material.LOOM,              "§7Faction management and diplomacy");
 
     private final String   displayName;
     private final Material blockMaterial;

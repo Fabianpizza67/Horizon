@@ -5,25 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7427c7d-461b-4e55-8532-47304fa24d2b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/StoryDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/GeminiClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryArc.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryChapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryObjectiveType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/story/StoryStatus.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/FactionCommand.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/FactionDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/Faction.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionMember.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionRank.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionRelation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/FactionTerminalGui.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/EconomyCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/ShipCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/command/ShipCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/ShipCoreListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/ShipCoreListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/mission/MissionManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/EngineeringGui.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/StationListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/StationListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/StationType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/MissionBoardGui.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/warp/WarpManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -35,8 +31,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="package-info" />
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -49,31 +45,31 @@
     &quot;assignee&quot;: &quot;Fabianpizza67&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Fabianpizza67/Horizon.git&quot;,
-    &quot;accountId&quot;: &quot;da5a722e-e52b-4765-adfd-df618b463e5e&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Fabianpizza67/Horizon.git",
+    "accountId": "29c4d3cb-a5a3-451d-b025-7f6e3eb01fe4"
   }
-}</component>
+}]]></component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.000000000000009" />
-      <entry key="S5" value="1.0000024236284892" />
-      <entry key="S10" value="1.001556800722377" />
-      <entry key="S30" value="1.11589846253452" />
-      <entry key="S60" value="1.3404386325529465" />
-      <entry key="M2" value="1.5834711925647627" />
-      <entry key="M5" value="1.8061349816904269" />
-      <entry key="M10" value="1.8978502000280595" />
-      <entry key="M15" value="1.9306847316672764" />
-      <entry key="M30" value="1.964720027607635" />
-      <entry key="H1" value="1.9822016226863175" />
-      <entry key="H2" value="1.9910608572094453" />
-      <entry key="H4" value="1.9955273313144024" />
-      <entry key="D1" value="3.6768969930171136" />
-      <entry key="W1" value="17.185174044167137" />
+      <entry key="MS500" value="1.000000000000001" />
+      <entry key="S2" value="1.0001861403458177" />
+      <entry key="S5" value="1.0385584627085382" />
+      <entry key="S10" value="1.2600053565963556" />
+      <entry key="S30" value="1.9964266520089287" />
+      <entry key="S60" value="2.410791819800285" />
+      <entry key="M2" value="2.759835238034923" />
+      <entry key="M5" value="3.809802533654304" />
+      <entry key="M10" value="5.245201975466093" />
+      <entry key="M15" value="6.11105105057958" />
+      <entry key="M30" value="7.313692011237902" />
+      <entry key="H1" value="8.084838746896903" />
+      <entry key="H2" value="8.522717559070557" />
+      <entry key="H4" value="8.75620884564111" />
+      <entry key="D1" value="10.6215063877527" />
+      <entry key="W1" value="24.1601828492262" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -95,23 +91,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9460576467255959" />
-      <entry key="MS500" value="0.9889709163809315" />
-      <entry key="S2" value="0.9972312513520744" />
-      <entry key="S5" value="0.9988934684546823" />
-      <entry key="S10" value="1.0008201144194153" />
-      <entry key="S30" value="1.1110001209137927" />
-      <entry key="S60" value="1.3333516475419311" />
-      <entry key="M2" value="1.577399947096529" />
-      <entry key="M5" value="1.8027764032540685" />
-      <entry key="M10" value="1.8959789761992971" />
-      <entry key="M15" value="1.9293914086318222" />
-      <entry key="M30" value="1.9640495994055496" />
-      <entry key="H1" value="1.9818603033440618" />
-      <entry key="H2" value="1.990888650345603" />
-      <entry key="H4" value="1.9954408383383848" />
-      <entry key="D1" value="3.676877929494368" />
-      <entry key="W1" value="17.185165912781645" />
+      <entry key="MS100" value="2.0023567520547314E-32" />
+      <entry key="MS500" value="4.57412776712752E-7" />
+      <entry key="S2" value="0.026106421756243548" />
+      <entry key="S5" value="0.26364812556180994" />
+      <entry key="S10" value="0.7204717729507825" />
+      <entry key="S30" value="1.7568146975133894" />
+      <entry key="S60" value="2.280303880814726" />
+      <entry key="M2" value="2.691521073097405" />
+      <entry key="M5" value="3.7812500276764256" />
+      <entry key="M10" value="5.230247064951156" />
+      <entry key="M15" value="6.100786135168837" />
+      <entry key="M30" value="7.308341360058529" />
+      <entry key="H1" value="8.08208991039092" />
+      <entry key="H2" value="8.521321721004487" />
+      <entry key="H4" value="8.755505139869637" />
+      <entry key="D1" value="10.62138370718202" />
+      <entry key="W1" value="24.160159897438636" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -145,6 +141,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -179,6 +176,7 @@
       <workItem from="1780993791377" duration="8959000" />
       <workItem from="1781431948653" duration="908000" />
       <workItem from="1781613752498" duration="932000" />
+      <workItem from="1781685148361" duration="1356000" />
     </task>
     <servers />
   </component>
@@ -188,5 +186,9 @@
   <component name="UnknownFeatures">
     <option featureType="dependencySupport" implementationName="java:net.kyori:adventure-api" />
     <option featureType="dependencySupport" implementationName="java:io.papermc.paper:paper-api" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

@@ -11,18 +11,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
-/**
- * Creates station block items and registers all Horizon crafting recipes.
- *
- * Station recipes:
- *   Helm Console        (BARREL)          — I C I / I R I / S S S
- *   Navigation Console  (CARTOGRAPHY_TABLE)— G P G / G M G / L L L
- *   Engineering Console (BLAST_FURNACE)   — I R I / R R R / I R I  ← simplified
- *
- * Fuel recipe:
- *   Dilithium Crystal ×2 — G G G / G A G / G G G
- *   (8 Glowstone Dust + 1 Amethyst Shard)
- */
 public class StationItem {
 
     public static final NamespacedKey PDC_STATION_TYPE =
@@ -30,19 +18,11 @@ public class StationItem {
 
     private StationItem() {}
 
-    // -----------------------------------------------------------------------
-    // Item creation
-    // -----------------------------------------------------------------------
-
     public static ItemStack create(StationType type) {
         ItemStack item = new ItemStack(type.getBlockMaterial());
         ItemMeta  meta = item.getItemMeta();
         meta.setDisplayName("§b⚙ " + type.getDisplayName());
-        meta.setLore(List.of(
-                type.getDescription(),
-                "",
-                "§8Place on your ship to activate."
-        ));
+        meta.setLore(List.of(type.getDescription(), "", "§8Place on your ship to activate."));
         meta.getPersistentDataContainer()
                 .set(PDC_STATION_TYPE, PersistentDataType.STRING, type.name());
         item.setItemMeta(meta);
@@ -62,24 +42,23 @@ public class StationItem {
 
     public static boolean isStationItem(ItemStack item) { return getType(item) != null; }
 
-    // -----------------------------------------------------------------------
-    // Recipe registration
-    // -----------------------------------------------------------------------
-
     public static void registerRecipes(Horizon plugin) {
         registerHelm(plugin);
         registerNavigation(plugin);
         registerEngineering(plugin);
         registerMissionTerminal(plugin);
+        registerFactionTerminal(plugin);
         registerDilithium(plugin);
     }
 
+    // -----------------------------------------------------------------------
+    // Helm Console (BARREL)
+    // I C I / I R I / S S S
+    // I=IRON_INGOT  C=COMPASS  R=REDSTONE  S=STONE_BRICKS
+    // -----------------------------------------------------------------------
     private static void registerHelm(Horizon plugin) {
-        // I C I
-        // I R I    I=IRON_INGOT  C=COMPASS  R=REDSTONE  S=STONE_BRICKS
-        // S S S
-        NamespacedKey key = new NamespacedKey(plugin, "helm_console");
-        ShapedRecipe r = new ShapedRecipe(key, create(StationType.HELM));
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "helm_console"),
+                create(StationType.HELM));
         r.shape("ICI", "IRI", "SSS");
         r.setIngredient('I', Material.IRON_INGOT);
         r.setIngredient('C', Material.COMPASS);
@@ -88,12 +67,14 @@ public class StationItem {
         plugin.getServer().addRecipe(r);
     }
 
+    // -----------------------------------------------------------------------
+    // Navigation Console (CARTOGRAPHY_TABLE)
+    // G P G / G M G / L L L
+    // G=GOLD_INGOT  P=PAPER  M=FILLED_MAP  L=LAPIS_LAZULI
+    // -----------------------------------------------------------------------
     private static void registerNavigation(Horizon plugin) {
-        // G P G
-        // G M G    G=GOLD_INGOT  P=PAPER  M=FILLED_MAP  L=LAPIS_LAZULI
-        // L L L
-        NamespacedKey key = new NamespacedKey(plugin, "navigation_console");
-        ShapedRecipe r = new ShapedRecipe(key, create(StationType.NAVIGATION));
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "navigation_console"),
+                create(StationType.NAVIGATION));
         r.shape("GPG", "GMG", "LLL");
         r.setIngredient('G', Material.GOLD_INGOT);
         r.setIngredient('P', Material.PAPER);
@@ -102,41 +83,56 @@ public class StationItem {
         plugin.getServer().addRecipe(r);
     }
 
+    // -----------------------------------------------------------------------
+    // Engineering Console (BLAST_FURNACE)
+    // I R I / R R R / I R I   (4 iron + 5 redstone)
+    // -----------------------------------------------------------------------
     private static void registerEngineering(Horizon plugin) {
-        // I R I
-        // R R R    I=IRON_INGOT  R=REDSTONE  (4 iron + 5 redstone — simple and achievable)
-        // I R I
-        NamespacedKey key = new NamespacedKey(plugin, "engineering_console");
-        ShapedRecipe r = new ShapedRecipe(key, create(StationType.ENGINEERING));
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "engineering_console"),
+                create(StationType.ENGINEERING));
         r.shape("IRI", "RRR", "IRI");
         r.setIngredient('I', Material.IRON_INGOT);
         r.setIngredient('R', Material.REDSTONE);
         plugin.getServer().addRecipe(r);
     }
 
+    // -----------------------------------------------------------------------
+    // Mission Terminal (LECTERN)
+    // P P P / P B P / P P P
+    // P=PAPER  B=REDSTONE_BLOCK
+    // -----------------------------------------------------------------------
     private static void registerMissionTerminal(Horizon plugin) {
-        // P P P
-        // P R P    P=PAPER  R=REDSTONE_BLOCK  (8 paper + 1 redstone block)
-        // P P P
-        NamespacedKey key = new NamespacedKey(plugin, "mission_terminal");
-        ShapedRecipe r = new ShapedRecipe(key, create(StationType.MISSION_TERMINAL));
-        r.shape("PPP", "PRP", "PPP");
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "mission_terminal"),
+                create(StationType.MISSION_TERMINAL));
+        r.shape("PPP", "PBP", "PPP");
         r.setIngredient('P', Material.PAPER);
-        r.setIngredient('R', Material.REDSTONE_BLOCK);
+        r.setIngredient('B', Material.REDSTONE_BLOCK);
         plugin.getServer().addRecipe(r);
     }
 
-    /**
-     * Dilithium Crystal fuel recipe.
-     * G G G
-     * G A G   8 Glowstone Dust + 1 Amethyst Shard → 2 Dilithium Crystals
-     * G G G
-     */
+    // -----------------------------------------------------------------------
+    // Faction Terminal (LOOM)
+    // G B G / B D B / G B G
+    // G=GOLD_INGOT  B=BLUE_DYE  D=DIAMOND
+    // -----------------------------------------------------------------------
+    private static void registerFactionTerminal(Horizon plugin) {
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "faction_terminal"),
+                create(StationType.FACTION_TERMINAL));
+        r.shape("GBG", "BDB", "GBG");
+        r.setIngredient('G', Material.GOLD_INGOT);
+        r.setIngredient('B', Material.BLUE_DYE);
+        r.setIngredient('D', Material.DIAMOND);
+        plugin.getServer().addRecipe(r);
+    }
+
+    // -----------------------------------------------------------------------
+    // Dilithium Crystal (×2)
+    // G G G / G A G / G G G
+    // G=GLOWSTONE_DUST  A=AMETHYST_SHARD
+    // -----------------------------------------------------------------------
     private static void registerDilithium(Horizon plugin) {
-        NamespacedKey key = new NamespacedKey(plugin, "dilithium_crystal");
-        // Result: 2 crystals per craft
-        ItemStack result = FuelItem.create(2);
-        ShapedRecipe r = new ShapedRecipe(key, result);
+        ShapedRecipe r = new ShapedRecipe(new NamespacedKey(plugin, "dilithium_crystal"),
+                FuelItem.create(2));
         r.shape("GGG", "GAG", "GGG");
         r.setIngredient('G', Material.GLOWSTONE_DUST);
         r.setIngredient('A', Material.AMETHYST_SHARD);

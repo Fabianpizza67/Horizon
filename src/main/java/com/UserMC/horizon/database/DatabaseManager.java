@@ -110,6 +110,69 @@ public class DatabaseManager {
                     status VARCHAR(16) NOT NULL DEFAULT 'AVAILABLE',
                     accepted_by VARCHAR(36) NULL, accepted_at BIGINT NOT NULL DEFAULT 0,
                     INDEX idx_status (status))""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_story_arcs (
+                    arc_id VARCHAR(36) PRIMARY KEY,
+                    player_uuid VARCHAR(36) NOT NULL,
+                    premise TEXT NOT NULL DEFAULT '',
+                    current_chapter INT NOT NULL DEFAULT 1,
+                    total_chapters INT NOT NULL DEFAULT 5,
+                    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX idx_player (player_uuid),
+                    INDEX idx_status (status))""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_story_chapters (
+                    chapter_id VARCHAR(36) PRIMARY KEY,
+                    arc_id VARCHAR(36) NOT NULL,
+                    chapter_number INT NOT NULL,
+                    title VARCHAR(128) NOT NULL DEFAULT '',
+                    narrative TEXT NOT NULL DEFAULT '',
+                    objective_flavor TEXT NOT NULL DEFAULT '',
+                    completion_text TEXT NOT NULL DEFAULT '',
+                    objective_type VARCHAR(32) NOT NULL,
+                    progress INT NOT NULL DEFAULT 0,
+                    required INT NOT NULL DEFAULT 1,
+                    reward_credits INT NOT NULL DEFAULT 0,
+                    reward_xp INT NOT NULL DEFAULT 0,
+                    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+                    FOREIGN KEY (arc_id) REFERENCES horizon_story_arcs(arc_id) ON DELETE CASCADE,
+                    INDEX idx_arc (arc_id))""");
+
+            // Factions
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_factions (
+                    faction_id   VARCHAR(36) PRIMARY KEY,
+                    name         VARCHAR(64) UNIQUE NOT NULL,
+                    description  TEXT        NOT NULL DEFAULT '',
+                    leader_uuid  VARCHAR(36) NOT NULL,
+                    bank_balance BIGINT      NOT NULL DEFAULT 0,
+                    created_at   TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
+                )""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_faction_members (
+                    player_uuid  VARCHAR(36) PRIMARY KEY,
+                    faction_id   VARCHAR(36) NOT NULL,
+                    player_name  VARCHAR(64) NOT NULL DEFAULT '',
+                    rank         VARCHAR(16) NOT NULL DEFAULT 'RECRUIT',
+                    joined_at    BIGINT      NOT NULL DEFAULT 0,
+                    FOREIGN KEY (faction_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
+                    INDEX idx_faction (faction_id)
+                )""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_faction_relations (
+                    faction_a_id VARCHAR(36) NOT NULL,
+                    faction_b_id VARCHAR(36) NOT NULL,
+                    relation     VARCHAR(16) NOT NULL DEFAULT 'NEUTRAL',
+                    established  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (faction_a_id, faction_b_id),
+                    FOREIGN KEY (faction_a_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
+                    FOREIGN KEY (faction_b_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE
+                )""");
         }
     }
 

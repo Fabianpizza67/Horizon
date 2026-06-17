@@ -25,10 +25,10 @@ public class MissionBoardGui extends com.usermc.horizon.station.gui.HorizonGui {
 
     public MissionBoardGui(Ship ship, Player player) {
         super(ship, player, 4, "§b📋 Mission Board");
-        refresh();
+        refreshy();
     }
 
-    private void refresh() {
+    private void refreshy() {
         Horizon plugin = Horizon.getInstance();
         this.boardMissions  = plugin.getMissionManager().getBoardMissions();
         this.activeMissions = plugin.getMissionManager().getActiveMissions(player.getUniqueId());
@@ -175,7 +175,7 @@ public class MissionBoardGui extends com.usermc.horizon.station.gui.HorizonGui {
         }
 
         // Refresh button
-        if (slot == 35) { refresh(); return true; }
+        if (slot == 35) { refreshy(); return true; }
 
         // Active mission slots — no action (display only)
         if (slot >= 27) return false;
