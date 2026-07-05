@@ -163,6 +163,8 @@ public class ShipMovementEngine {
         plugin.getShipManager().updateCoreIndex(ship, oldCore);
         ship.setCoreLocation(newCore);
         plugin.getStationManager().updateForShip(ship, dx, dy, dz);
+        plugin.getChipRackManager().updateForShip(ship, dx, dy, dz);
+        plugin.getChipCreationManager().onShipMoved(ship, dx, dy, dz);
 
         // Lightweight async position/state sync — keeps the DB from drifting
         // behind reality between the heavier 30s structure auto-saves.
@@ -248,6 +250,8 @@ public class ShipMovementEngine {
 
         // Rotate station locations
         plugin.getStationManager().rotateForShip(ship, cw);
+        plugin.getChipRackManager().rotateForShip(ship, cw);
+        plugin.getChipCreationManager().onShipRotated(ship);
 
         // Rotation changes the structure layout (relative offsets) AND heading,
         // so persist the FULL ship record (async — structure serialization

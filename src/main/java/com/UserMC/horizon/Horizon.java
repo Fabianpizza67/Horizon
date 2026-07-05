@@ -12,6 +12,9 @@ import com.usermc.horizon.fuel.FuelManager;
 import com.usermc.horizon.listener.*;
 import com.usermc.horizon.mission.MissionManager;
 import com.usermc.horizon.faction.FactionManager;
+import com.usermc.horizon.navigation.ChipCreationManager;
+import com.usermc.horizon.navigation.ChipRackItem;
+import com.usermc.horizon.navigation.ChipRackManager;
 import com.usermc.horizon.space.AsteroidManager;
 import com.usermc.horizon.story.StoryManager;
 import com.usermc.horizon.rank.RankManager;
@@ -47,6 +50,8 @@ public final class Horizon extends JavaPlugin {
     private StoryManager        storyManager;
     private FactionManager      factionManager;
     private AsteroidManager     asteroidManager;
+    private ChipRackManager     chipRackManager;
+    private ChipCreationManager chipCreationManager;
 
     @Override
     public void onEnable() {
@@ -75,13 +80,14 @@ public final class Horizon extends JavaPlugin {
         storyManager   = new StoryManager(this);
         factionManager = new FactionManager(this);
         asteroidManager = new AsteroidManager(this);
-
-        // Ship system
-        shipManager = new ShipManager(this);
-        shipManager.loadAll();
-
+        chipRackManager = new ChipRackManager(this);
+        chipCreationManager = new ChipCreationManager(this);
         movementEngine = new ShipMovementEngine(this);
+        shipManager = new ShipManager(this);
+
+        // Start systems
         movementEngine.start();
+        chipCreationManager.start();
 
         // Load persisted data
         warpManager.loadAll();
@@ -92,9 +98,12 @@ public final class Horizon extends JavaPlugin {
         storyManager.loadAll();
         factionManager.loadAll();
         asteroidManager.loadAll();
+        shipManager.loadAll();
+        chipRackManager.loadAll();
 
         // Crafting recipes for station blocks + fuel
         StationItem.registerRecipes(this);
+        ChipRackItem.registerRecipe(this);
 
         // Listeners
         getServer().getPluginManager().registerEvents(new ShipCoreListener(this),    this);
@@ -102,6 +111,7 @@ public final class Horizon extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StationListener(this),     this);
         getServer().getPluginManager().registerEvents(new GuiClickListener(this),    this);
         getServer().getPluginManager().registerEvents(new AsteroidMiningListener(this), this);
+        getServer().getPluginManager().registerEvents(new NavigationChipListener(this), this);
 
         // Commands
         var shipCmd = new ShipCommand(this);
@@ -126,6 +136,8 @@ public final class Horizon extends JavaPlugin {
         if (movementEngine!= null) movementEngine.stop();
         if (missionManager!= null) missionManager.shutdown();
         if (asteroidManager != null) asteroidManager.shutdown();
+        if (chipCreationManager != null) chipCreationManager.stop();
+        if (chipRackManager != null) chipRackManager.saveAll();
 
         // Each save wrapped independently — one failure must never skip the rest.
         // This is what caused the ship position loss: StationManager threw an
@@ -191,5 +203,7 @@ public final class Horizon extends JavaPlugin {
     public MissionManager   getMissionManager()      { return missionManager; }
     public StoryManager     getStoryManager()        { return storyManager; }
     public FactionManager   getFactionManager()      { return factionManager; }
-    public AsteroidManager getAsteroidManager() { return asteroidManager; }
+    public AsteroidManager getAsteroidManager()         { return asteroidManager; }
+    public ChipRackManager getChipRackManager()         { return chipRackManager; }
+    public ChipCreationManager getChipCreationManager() { return chipCreationManager; }
 }

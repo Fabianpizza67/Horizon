@@ -208,6 +208,18 @@ public class DatabaseManager {
                     FOREIGN KEY (faction_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
                     INDEX idx_faction (faction_id)
                 )""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_chip_storage (
+                    container_id VARCHAR(36) NOT NULL, slot INT NOT NULL, item_data MEDIUMTEXT NOT NULL,
+                    PRIMARY KEY (container_id, slot)
+                )""");
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_chip_racks (
+                    rack_id VARCHAR(36) PRIMARY KEY, ship_id VARCHAR(36) NOT NULL,
+                    world_name VARCHAR(64) NOT NULL, x INT NOT NULL, y INT NOT NULL, z INT NOT NULL,
+                    FOREIGN KEY (ship_id) REFERENCES horizon_ships(ship_id) ON DELETE CASCADE
+                )""");
                     }
     }
 

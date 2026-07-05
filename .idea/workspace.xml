@@ -5,14 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7427c7d-461b-4e55-8532-47304fa24d2b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/FactionRankDAO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionPermission.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionRankDef.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/ChipRackDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/dao/ChipStorageDAO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/listener/NavigationChipListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipCreationManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipCreationSession.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipRack.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipRackItem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipRackManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/navigation/ChipType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/station/gui/ChipRackGui.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/Faction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/Faction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionMember.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionMember.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/faction/FactionRank.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/Horizon.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/database/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/UserMC/horizon/ship/engine/ShipMovementEngine.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,23 +52,23 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000004148814499" />
-      <entry key="MS500" value="1.0918850083923224" />
-      <entry key="S2" value="1.925910002583529" />
-      <entry key="S5" value="2.4979181740546474" />
-      <entry key="S10" value="2.9369325573835" />
-      <entry key="S30" value="3.8458630242168987" />
-      <entry key="S60" value="4.323912504054368" />
-      <entry key="M2" value="4.711610339772238" />
-      <entry key="M5" value="5.7849960409900385" />
-      <entry key="M10" value="7.229058156130847" />
-      <entry key="M15" value="8.098785424642733" />
-      <entry key="M30" value="9.306515456244753" />
-      <entry key="H1" value="10.080915841550611" />
-      <entry key="H2" value="10.520661098744762" />
-      <entry key="H4" value="10.755155284466262" />
-      <entry key="D1" value="12.621297131648829" />
-      <entry key="W1" value="26.160118059014405" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0000000590784568" />
+      <entry key="S60" value="1.0005359133330443" />
+      <entry key="M2" value="1.0524539500765264" />
+      <entry key="M5" value="1.9570763816807686" />
+      <entry key="M10" value="3.9403801689477382" />
+      <entry key="M15" value="5.445982377011644" />
+      <entry key="M30" value="7.8954247778704465" />
+      <entry key="H1" value="9.67734670707796" />
+      <entry key="H2" value="10.760824663163948" />
+      <entry key="H4" value="11.359491190841627" />
+      <entry key="D1" value="13.542697486100137" />
+      <entry key="W1" value="27.136782387802768" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -83,23 +90,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9330331612968195" />
-      <entry key="MS500" value="1.0304882071805868" />
-      <entry key="S2" value="1.4671752129651419" />
-      <entry key="S5" value="1.9237874860695103" />
-      <entry key="S10" value="2.4714362204335174" />
-      <entry key="S30" value="3.616989759576135" />
-      <entry key="S60" value="4.196058892533335" />
-      <entry key="M2" value="4.643817890899566" />
-      <entry key="M5" value="5.756446583963308" />
-      <entry key="M10" value="7.214069426851179" />
-      <entry key="M15" value="8.088489823216037" />
-      <entry key="M30" value="9.301145194300725" />
-      <entry key="H1" value="10.078156069392419" />
-      <entry key="H2" value="10.519259498916199" />
-      <entry key="H4" value="10.754448622625226" />
-      <entry key="D1" value="12.621173947879383" />
-      <entry key="W1" value="26.16009503508332" />
+      <entry key="MS100" value="3.133364007721933E-4" />
+      <entry key="MS500" value="0.19916002407139566" />
+      <entry key="S2" value="0.6680370391950496" />
+      <entry key="S5" value="0.8509816924419489" />
+      <entry key="S10" value="0.9224866895744073" />
+      <entry key="S30" value="0.9734643711763481" />
+      <entry key="S60" value="0.987163019378404" />
+      <entry key="M2" value="1.0449982472998702" />
+      <entry key="M5" value="1.9496673289232551" />
+      <entry key="M10" value="3.932939782846352" />
+      <entry key="M15" value="5.439434342041341" />
+      <entry key="M30" value="7.890997684798046" />
+      <entry key="H1" value="9.674747086403466" />
+      <entry key="H2" value="10.75941223892754" />
+      <entry key="H4" value="11.358754498075012" />
+      <entry key="D1" value="13.542565731273418" />
+      <entry key="W1" value="27.1367580503774" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -169,7 +176,7 @@
       <workItem from="1781431948653" duration="908000" />
       <workItem from="1781613752498" duration="932000" />
       <workItem from="1781685148361" duration="7804000" />
-      <workItem from="1783256078162" duration="2284000" />
+      <workItem from="1783256078162" duration="4233000" />
     </task>
     <servers />
   </component>
