@@ -3,7 +3,6 @@ package com.usermc.horizon.database.dao;
 import com.usermc.horizon.Horizon;
 import com.usermc.horizon.faction.Faction;
 import com.usermc.horizon.faction.FactionMember;
-import com.usermc.horizon.faction.FactionRank;
 import com.usermc.horizon.faction.FactionRelation;
 import org.bukkit.Bukkit;
 
@@ -22,42 +21,22 @@ public class FactionDAO {
     // -----------------------------------------------------------------------
 
     public void saveFaction(Faction faction) {
-        String sql = """
-            INSERT INTO horizon_factions
-                (faction_id, name, description, leader_uuid, bank_balance)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                name         = VALUES(name),
-                description  = VALUES(description),
-                leader_uuid  = VALUES(leader_uuid),
-                bank_balance = VALUES(bank_balance)
-        """;
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection c = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = c.prepareStatement(sql)) {
-                ps.setString(1, faction.getFactionId().toString());
-                ps.setString(2, faction.getName());
-                ps.setString(3, faction.getDescription());
-                ps.setString(4, faction.getLeaderUUID().toString());
-                ps.setLong  (5, faction.getBankBalance());
-                ps.executeUpdate();
-                faction.clearDirty();
-            } catch (SQLException e) {
-                plugin.getLogger().log(Level.SEVERE, "Failed to save faction " + faction.getName(), e);
-            }
-        });
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveFactionInternal(faction));
     }
 
-    public void saveFactionSync(Faction faction) {
+    public void saveFactionSync(Faction faction) { saveFactionInternal(faction); }
+
+    private void saveFactionInternal(Faction faction) {
         String sql = """
             INSERT INTO horizon_factions
-                (faction_id, name, description, leader_uuid, bank_balance)
-            VALUES (?, ?, ?, ?, ?)
+                (faction_id, name, description, leader_uuid, bank_balance, new_member_rank_id)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                name         = VALUES(name),
-                description  = VALUES(description),
-                leader_uuid  = VALUES(leader_uuid),
-                bank_balance = VALUES(bank_balance)
+                name                = VALUES(name),
+                description         = VALUES(description),
+                leader_uuid         = VALUES(leader_uuid),
+                bank_balance        = VALUES(bank_balance),
+                new_member_rank_id  = VALUES(new_member_rank_id)
         """;
         try (Connection c = plugin.getDatabaseManager().getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -66,10 +45,12 @@ public class FactionDAO {
             ps.setString(3, faction.getDescription());
             ps.setString(4, faction.getLeaderUUID().toString());
             ps.setLong  (5, faction.getBankBalance());
+            UUID newMemberRank = faction.getNewMemberRankId();
+            ps.setString(6, newMemberRank != null ? newMemberRank.toString() : null);
             ps.executeUpdate();
             faction.clearDirty();
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to sync-save faction " + faction.getName(), e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to save faction " + faction.getName(), e);
         }
     }
 
@@ -87,18 +68,18 @@ public class FactionDAO {
     }
 
     // -----------------------------------------------------------------------
-    // Members
+    // Members — now stores rank_id (UUID) instead of a hardcoded rank name
     // -----------------------------------------------------------------------
 
     public void saveMember(FactionMember member) {
         String sql = """
             INSERT INTO horizon_faction_members
-                (player_uuid, faction_id, player_name, rank, joined_at)
+                (player_uuid, faction_id, player_name, rank_id, joined_at)
             VALUES (?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 faction_id  = VALUES(faction_id),
                 player_name = VALUES(player_name),
-                rank        = VALUES(rank)
+                rank_id     = VALUES(rank_id)
         """;
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Connection c = plugin.getDatabaseManager().getConnection();
@@ -106,7 +87,7 @@ public class FactionDAO {
                 ps.setString(1, member.getPlayerUUID().toString());
                 ps.setString(2, member.getFactionId().toString());
                 ps.setString(3, member.getPlayerName());
-                ps.setString(4, member.getRank().name());
+                ps.setString(4, member.getRankId().toString());
                 ps.setLong  (5, member.getJoinedAt());
                 ps.executeUpdate();
                 member.clearDirty();
@@ -134,10 +115,7 @@ public class FactionDAO {
     // -----------------------------------------------------------------------
 
     public void saveRelation(UUID factionA, UUID factionB, FactionRelation relation) {
-        if (relation == FactionRelation.NEUTRAL) {
-            deleteRelation(factionA, factionB);
-            return;
-        }
+        if (relation == FactionRelation.NEUTRAL) { deleteRelation(factionA, factionB); return; }
         String sql = """
             INSERT INTO horizon_faction_relations (faction_a_id, faction_b_id, relation)
             VALUES (?, ?, ?)
@@ -175,67 +153,73 @@ public class FactionDAO {
 
     // -----------------------------------------------------------------------
     // Load all — synchronous, called on startup
+    // Note: ranks are loaded separately via FactionRankDAO and stitched
+    // together by FactionManager, since rank loading needs no faction
+    // cross-reference beyond factionId.
     // -----------------------------------------------------------------------
 
-    public List<Faction> loadAll() {
-        List<Faction> factions = new ArrayList<>();
+    /** Raw faction row data, used by FactionManager before ranks are attached. */
+    public record FactionRow(UUID factionId, String name, String description, UUID leaderUUID,
+                             long bankBalance, long createdAt, UUID newMemberRankId) {}
 
-        try (Connection c = plugin.getDatabaseManager().getConnection()) {
-
-            // Load factions
-            try (Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SELECT * FROM horizon_factions")) {
-                while (rs.next()) {
-                    UUID   id     = UUID.fromString(rs.getString("faction_id"));
-                    String name   = rs.getString("name");
-                    String desc   = rs.getString("description");
-                    UUID   leader = UUID.fromString(rs.getString("leader_uuid"));
-                    long   bank   = rs.getLong("bank_balance");
-                    long   created= rs.getTimestamp("created_at").getTime();
-                    factions.add(new Faction(id, name, desc, leader, bank, created));
-                }
+    public List<FactionRow> loadFactionRows() {
+        List<FactionRow> rows = new ArrayList<>();
+        try (Connection c = plugin.getDatabaseManager().getConnection();
+             Statement s = c.createStatement();
+             ResultSet rs = s.executeQuery("SELECT * FROM horizon_factions")) {
+            while (rs.next()) {
+                UUID   id     = UUID.fromString(rs.getString("faction_id"));
+                String name   = rs.getString("name");
+                String desc   = rs.getString("description");
+                UUID   leader = UUID.fromString(rs.getString("leader_uuid"));
+                long   bank   = rs.getLong("bank_balance");
+                long   created= rs.getTimestamp("created_at").getTime();
+                String nmrRaw = rs.getString("new_member_rank_id");
+                UUID   nmr    = nmrRaw != null ? UUID.fromString(nmrRaw) : null;
+                rows.add(new FactionRow(id, name, desc, leader, bank, created, nmr));
             }
-
-            // Load members into their factions
-            Map<UUID, Faction> factionMap = new HashMap<>();
-            factions.forEach(f -> factionMap.put(f.getFactionId(), f));
-
-            try (Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SELECT * FROM horizon_faction_members")) {
-                while (rs.next()) {
-                    UUID   playerUUID = UUID.fromString(rs.getString("player_uuid"));
-                    UUID   factionId  = UUID.fromString(rs.getString("faction_id"));
-                    String playerName = rs.getString("player_name");
-                    FactionRank rank  = FactionRank.valueOf(rs.getString("rank"));
-                    long joinedAt     = rs.getLong("joined_at");
-                    Faction f = factionMap.get(factionId);
-                    if (f != null) {
-                        f.addMember(new FactionMember(playerUUID, factionId, rank, playerName, joinedAt));
-                    }
-                }
-            }
-
-            // Load relations
-            try (Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SELECT * FROM horizon_faction_relations")) {
-                while (rs.next()) {
-                    UUID           idA    = UUID.fromString(rs.getString("faction_a_id"));
-                    UUID           idB    = UUID.fromString(rs.getString("faction_b_id"));
-                    FactionRelation rel   = FactionRelation.valueOf(rs.getString("relation"));
-                    Faction fA = factionMap.get(idA);
-                    Faction fB = factionMap.get(idB);
-                    if (fA != null) fA.setRelation(idB, rel);
-                    if (fB != null) fB.setRelation(idA, rel);
-                    // Clear dirty flags set by setRelation
-                    if (fA != null) fA.clearDirty();
-                    if (fB != null) fB.clearDirty();
-                }
-            }
-
         } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load factions", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to load faction rows", e);
         }
+        return rows;
+    }
 
-        return factions;
+    /** Raw member row data, keyed by factionId for easy stitching. */
+    public record MemberRow(UUID playerUUID, UUID factionId, String playerName, UUID rankId, long joinedAt) {}
+
+    public List<MemberRow> loadMemberRows() {
+        List<MemberRow> rows = new ArrayList<>();
+        try (Connection c = plugin.getDatabaseManager().getConnection();
+             Statement s = c.createStatement();
+             ResultSet rs = s.executeQuery("SELECT * FROM horizon_faction_members")) {
+            while (rs.next()) {
+                UUID   playerUUID = UUID.fromString(rs.getString("player_uuid"));
+                UUID   factionId  = UUID.fromString(rs.getString("faction_id"));
+                String playerName = rs.getString("player_name");
+                UUID   rankId     = UUID.fromString(rs.getString("rank_id"));
+                long   joinedAt   = rs.getLong("joined_at");
+                rows.add(new MemberRow(playerUUID, factionId, playerName, rankId, joinedAt));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load faction members", e);
+        }
+        return rows;
+    }
+
+    public List<Object[]> loadRelationRows() {
+        List<Object[]> rows = new ArrayList<>();
+        try (Connection c = plugin.getDatabaseManager().getConnection();
+             Statement s = c.createStatement();
+             ResultSet rs = s.executeQuery("SELECT * FROM horizon_faction_relations")) {
+            while (rs.next()) {
+                UUID idA = UUID.fromString(rs.getString("faction_a_id"));
+                UUID idB = UUID.fromString(rs.getString("faction_b_id"));
+                FactionRelation rel = FactionRelation.valueOf(rs.getString("relation"));
+                rows.add(new Object[]{idA, idB, rel});
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load faction relations", e);
+        }
+        return rows;
     }
 }

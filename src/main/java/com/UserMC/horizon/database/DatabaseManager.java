@@ -144,12 +144,13 @@ public class DatabaseManager {
             // Factions
             s.executeUpdate("""
                 CREATE TABLE IF NOT EXISTS horizon_factions (
-                    faction_id   VARCHAR(36) PRIMARY KEY,
-                    name         VARCHAR(64) UNIQUE NOT NULL,
-                    description  TEXT        NOT NULL DEFAULT '',
-                    leader_uuid  VARCHAR(36) NOT NULL,
-                    bank_balance BIGINT      NOT NULL DEFAULT 0,
-                    created_at   TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
+                    faction_id         VARCHAR(36) PRIMARY KEY,
+                    name               VARCHAR(64) UNIQUE NOT NULL,
+                    description        TEXT        NOT NULL DEFAULT '',
+                    leader_uuid        VARCHAR(36) NOT NULL,
+                    bank_balance       BIGINT      NOT NULL DEFAULT 0,
+                    new_member_rank_id VARCHAR(36) NULL,
+                    created_at         TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
                 )""");
 
             s.executeUpdate("""
@@ -157,7 +158,7 @@ public class DatabaseManager {
                     player_uuid  VARCHAR(36) PRIMARY KEY,
                     faction_id   VARCHAR(36) NOT NULL,
                     player_name  VARCHAR(64) NOT NULL DEFAULT '',
-                    rank         VARCHAR(16) NOT NULL DEFAULT 'RECRUIT',
+                    rank_id      VARCHAR(36) NULL,
                     joined_at    BIGINT      NOT NULL DEFAULT 0,
                     FOREIGN KEY (faction_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
                     INDEX idx_faction (faction_id)
@@ -193,6 +194,19 @@ public class DatabaseManager {
                     mined_at BIGINT NOT NULL DEFAULT 0, respawn_at BIGINT NOT NULL DEFAULT 0,
                     FOREIGN KEY (cluster_id) REFERENCES horizon_asteroid_clusters(cluster_id) ON DELETE CASCADE,
                     INDEX idx_cluster (cluster_id)
+                )""");
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_faction_ranks (
+                    rank_id            VARCHAR(36)  PRIMARY KEY,
+                    faction_id         VARCHAR(36)  NOT NULL,
+                    name               VARCHAR(64)  NOT NULL,
+                    permissions        BIGINT       NOT NULL DEFAULT 0,
+                    hierarchy_position INT          NOT NULL DEFAULT 0,
+                    is_leader_rank     BOOLEAN      NOT NULL DEFAULT FALSE,
+                    is_default_rank    BOOLEAN      NOT NULL DEFAULT FALSE,
+                    FOREIGN KEY (faction_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
+                    INDEX idx_faction (faction_id)
                 )""");
                     }
     }

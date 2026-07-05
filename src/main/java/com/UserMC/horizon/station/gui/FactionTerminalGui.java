@@ -10,39 +10,37 @@ import org.bukkit.event.inventory.ClickType;
 import java.util.*;
 
 /**
- * Faction Terminal GUI — 4 rows (36 slots).
+ * Faction Terminal GUI — 5 rows.
  *
- * Tabs:
- *   OVERVIEW  — faction name/desc, leader, bank, join/leave/create
- *   MEMBERS   — roster with ranks
- *   DIPLOMACY — relations to other factions + pending proposals
- *   BANK      — deposit / withdraw
- *
- * Tab switcher in row 3 (slots 27-35).
+ * Tabs: OVERVIEW | MEMBERS | RANKS | DIPLOMACY | BANK
  */
 public class FactionTerminalGui extends HorizonGui {
 
-    private enum Tab { OVERVIEW, MEMBERS, DIPLOMACY, BANK }
+    private enum Tab { OVERVIEW, MEMBERS, RANKS, DIPLOMACY, BANK }
 
-    // Tab slots
-    private static final int SLOT_TAB_OVERVIEW  = 27;
-    private static final int SLOT_TAB_MEMBERS   = 28;
-    private static final int SLOT_TAB_DIPLOMACY = 29;
-    private static final int SLOT_TAB_BANK      = 30;
+    private static final int SLOT_TAB_OVERVIEW  = 36;
+    private static final int SLOT_TAB_MEMBERS   = 37;
+    private static final int SLOT_TAB_RANKS     = 38;
+    private static final int SLOT_TAB_DIPLOMACY = 39;
+    private static final int SLOT_TAB_BANK      = 40;
 
     private Tab currentTab = Tab.OVERVIEW;
 
+    /** Which rank is selected in the RANKS tab for permission editing. */
+    private UUID selectedRankId = null;
+
     public FactionTerminalGui(Ship ship, Player player) {
-        super(ship, player, 4, "§5⚑ Faction Terminal");
+        super(ship, player, 5, "§5⚑ Faction Terminal");
     }
 
     @Override
     public void build() {
         inventory.clear();
-        buildTabs();
+        buildTabBar();
         switch (currentTab) {
             case OVERVIEW  -> buildOverview();
             case MEMBERS   -> buildMembers();
+            case RANKS     -> buildRanks();
             case DIPLOMACY -> buildDiplomacy();
             case BANK      -> buildBank();
         }
@@ -50,226 +48,258 @@ public class FactionTerminalGui extends HorizonGui {
     }
 
     // -----------------------------------------------------------------------
-    // Tab bar (row 3)
+    // Tab bar (row 4, slots 36-44)
     // -----------------------------------------------------------------------
 
-    private void buildTabs() {
-        Horizon plugin = Horizon.getInstance();
-        Faction f = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-
+    private void buildTabBar() {
+        Faction f = faction();
         inventory.setItem(SLOT_TAB_OVERVIEW,
-                makeItem(Material.PAPER, tab(Tab.OVERVIEW), "§7General info"));
+                makeItem(Material.PAPER, tabLabel(Tab.OVERVIEW), "§7General info"));
         inventory.setItem(SLOT_TAB_MEMBERS,
                 makeItem(f != null ? Material.PLAYER_HEAD : Material.BARRIER,
-                        tab(Tab.MEMBERS), f != null ? "§7Roster" : "§8Not in a faction"));
+                        tabLabel(Tab.MEMBERS), f != null ? "§7Roster" : "§8Not in a faction"));
+        inventory.setItem(SLOT_TAB_RANKS,
+                makeItem(f != null ? Material.NAME_TAG : Material.BARRIER,
+                        tabLabel(Tab.RANKS), f != null ? "§7Rank editor" : "§8Not in a faction"));
         inventory.setItem(SLOT_TAB_DIPLOMACY,
                 makeItem(f != null ? Material.COMPASS : Material.BARRIER,
-                        tab(Tab.DIPLOMACY), f != null ? "§7Alliances & wars" : "§8Not in a faction"));
+                        tabLabel(Tab.DIPLOMACY), f != null ? "§7Relations" : "§8Not in a faction"));
         inventory.setItem(SLOT_TAB_BANK,
                 makeItem(f != null ? Material.GOLD_INGOT : Material.BARRIER,
-                        tab(Tab.BANK), f != null ? "§7Deposit / withdraw" : "§8Not in a faction"));
+                        tabLabel(Tab.BANK), f != null ? "§7Faction bank" : "§8Not in a faction"));
     }
 
-    private String tab(Tab t) {
-        String prefix = (currentTab == t) ? "§5§l▶ " : "§8";
+    private String tabLabel(Tab t) {
+        String prefix = currentTab == t ? "§5§l▶ " : "§8";
         return switch (t) {
             case OVERVIEW  -> prefix + "Overview";
             case MEMBERS   -> prefix + "Members";
+            case RANKS     -> prefix + "Ranks";
             case DIPLOMACY -> prefix + "Diplomacy";
             case BANK      -> prefix + "Bank";
         };
     }
 
     // -----------------------------------------------------------------------
-    // OVERVIEW tab
+    // OVERVIEW
     // -----------------------------------------------------------------------
 
     private void buildOverview() {
-        Horizon plugin = Horizon.getInstance();
-        Faction f = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-
+        Faction f = faction();
         if (f == null) {
-            // Not in a faction — show create / accept options
+            // Not in a faction
             inventory.setItem(13, makeItem(Material.WRITABLE_BOOK,
                     "§a§l+ Create Faction",
                     "§7Cost: §6" + FactionManager.FORMATION_COST + " EC",
-                    "§7Use §f/faction create <name> §7to found a faction.",
-                    "§8You must not be in another faction."
-            ));
-            boolean hasPending = plugin.getFactionManager().hasPendingInvite(player.getUniqueId());
-            if (hasPending) {
-                Faction inviting = plugin.getFactionManager().getPendingInviteFaction(player.getUniqueId());
+                    "§7Use §f/faction create <name>"));
+
+            if (Horizon.getInstance().getFactionManager().hasPendingInvite(player.getUniqueId())) {
+                Faction inv = Horizon.getInstance().getFactionManager().getPendingInviteFaction(player.getUniqueId());
                 inventory.setItem(11, makeItem(Material.LIME_DYE,
                         "§a§l✔ Accept Invite",
-                        "§7You have been invited to:",
-                        "§5" + (inviting != null ? inviting.getName() : "Unknown"),
-                        "",
+                        "§7Invited to: §5" + (inv != null ? inv.getName() : "Unknown"),
                         "§eClick to join!"));
-                inventory.setItem(15, makeItem(Material.RED_DYE,
-                        "§c§l✖ Decline Invite", "§7Decline and remove the pending invite."));
+                inventory.setItem(15, makeItem(Material.RED_DYE, "§c§l✖ Decline Invite"));
             }
             return;
         }
 
-        // Faction summary
-        FactionMember myMembership = f.getMember(player.getUniqueId());
-        long balance = plugin.getEconomyManager().getBalance(player);
+        FactionMember me = f.getMember(player.getUniqueId());
+        FactionRankDef myRank = me != null ? f.getRank(me.getRankId()) : null;
 
         inventory.setItem(4, makeItem(Material.PURPLE_BANNER,
                 "§5§l" + f.getName(),
-                f.getDescription().isBlank() ? "§8No description set" : "§7" + f.getDescription(),
+                f.getDescription().isBlank() ? "§8No description" : "§7" + f.getDescription(),
                 "",
-                "§7Leader: §f" + getNameOf(f.getLeaderUUID(), f),
                 "§7Members: §f" + f.getMemberCount(),
-                "§7Bank: §6" + f.getBankBalance() + " EC",
-                "",
-                "§7Your rank: " + (myMembership != null ? myMembership.getRank().coloured() : "§8None")
+                "§7Bank:    §6" + f.getBankBalance() + " EC",
+                "§7Your rank: §f" + (myRank != null ? myRank.getName() : "Unknown")
         ));
 
-        // Leave button (not available to solo leader)
-        boolean isSoloLeader = f.isLeader(player.getUniqueId()) && f.getMemberCount() > 1;
+        // Leave button
+        boolean soloLeader = f.isLeader(player.getUniqueId()) && f.countLeaders() <= 1 && f.getMemberCount() > 1;
         inventory.setItem(22, makeItem(
-                isSoloLeader ? Material.BARRIER : Material.RED_DYE,
-                isSoloLeader ? "§c§lCannot Leave" : "§c§l← Leave Faction",
-                isSoloLeader
-                        ? "§7Transfer leadership first with §f/faction transfer <player>"
-                        : "§7Leave §5" + f.getName() + "§7 permanently."
+                soloLeader ? Material.BARRIER : Material.RED_DYE,
+                soloLeader ? "§c§lCannot Leave" : "§c§l← Leave Faction",
+                soloLeader ? "§7Promote another leader first." : "§7Leave §5" + f.getName() + "§7 permanently."
         ));
 
-        // Disband (leader only)
+        // Disband (leaders only)
         if (f.isLeader(player.getUniqueId())) {
-            inventory.setItem(24, makeItem(Material.TNT,
-                    "§4§lDisband Faction",
-                    "§7Permanently dissolves the faction.",
-                    "§7All members are removed.",
-                    "§750% of bank balance refunded.",
-                    "",
-                    "§cUse §f/faction disband §cto confirm."));
+            inventory.setItem(24, makeItem(Material.TNT, "§4§lDisband Faction",
+                    "§7Use §f/faction disband §7to confirm.",
+                    "§750% of bank balance refunded."));
         }
     }
 
     // -----------------------------------------------------------------------
-    // MEMBERS tab
+    // MEMBERS
     // -----------------------------------------------------------------------
 
     private void buildMembers() {
-        Horizon plugin = Horizon.getInstance();
-        Faction f = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-        if (f == null) return;
-
-        FactionMember myMembership = f.getMember(player.getUniqueId());
+        Faction f = faction(); if (f == null) return;
 
         List<FactionMember> sorted = f.getMembers().values().stream()
-                .sorted(Comparator.comparingInt((FactionMember m) -> m.getRank().getTier()).reversed())
+                .sorted(Comparator.comparingInt(m -> {
+                    FactionRankDef r = f.getRank(m.getRankId());
+                    return r != null ? r.getHierarchyPosition() : 99;
+                }))
                 .toList();
 
         int slot = 0;
         for (FactionMember m : sorted) {
-            if (slot >= 27) break;
+            if (slot >= 36) break;
+            FactionRankDef rank = f.getRank(m.getRankId());
+            String rankName = rank != null ? rank.getName() : "?";
             boolean isMe = m.getPlayerUUID().equals(player.getUniqueId());
+
             List<String> lore = new ArrayList<>();
-            lore.add("§7Rank: " + m.getRank().coloured());
+            lore.add("§7Rank: §f" + rankName);
             if (isMe) lore.add("§8— that's you");
-            // Show promote/demote/kick hints if applicable
-            if (!isMe && myMembership != null && myMembership.getRank().isAtLeast(FactionRank.OFFICER)) {
-                lore.add("");
-                lore.add("§8/faction rank " + m.getPlayerName() + " <rank>");
-                if (!f.isLeader(m.getPlayerUUID()))
-                    lore.add("§8/faction kick " + m.getPlayerName());
-            }
+            if (!isMe && f.memberHasPermission(player.getUniqueId(), FactionPermission.KICK_MEMBERS)
+                    && !f.isLeader(m.getPlayerUUID()))
+                lore.add("§8/faction kick " + m.getPlayerName());
+            if (f.memberHasPermission(player.getUniqueId(), FactionPermission.MANAGE_RANKS))
+                lore.add("§8/faction rank assign " + m.getPlayerName() + " <rank>");
+
             inventory.setItem(slot++, makeItem(Material.PLAYER_HEAD,
-                    m.getRank().getColour() + m.getPlayerName(), lore));
+                    (f.isLeader(m.getPlayerUUID()) ? "§6" : "§f") + m.getPlayerName(), lore));
         }
     }
 
     // -----------------------------------------------------------------------
-    // DIPLOMACY tab
+    // RANKS — two-level: rank list → permission editor for selected rank
+    // -----------------------------------------------------------------------
+
+    private void buildRanks() {
+        Faction f = faction(); if (f == null) return;
+        boolean canManage = f.memberHasPermission(player.getUniqueId(), FactionPermission.MANAGE_RANKS);
+
+        if (selectedRankId != null && f.getRank(selectedRankId) != null) {
+            buildRankPermEditor(f, f.getRank(selectedRankId), canManage);
+        } else {
+            selectedRankId = null;
+            buildRankList(f, canManage);
+        }
+    }
+
+    private void buildRankList(Faction f, boolean canManage) {
+        UUID newMemberRankId = f.getNewMemberRankId();
+        int slot = 0;
+        for (FactionRankDef rank : f.getAllRanks()) {
+            if (slot >= 27) break;
+            List<String> lore = new ArrayList<>();
+            if (rank.isLeaderRank())  lore.add("§6[Leader — always full permissions]");
+            if (rank.isDefaultRank()) lore.add("§7[Default rank — editable]");
+            if (rank.getRankId().equals(newMemberRankId)) lore.add("§a[Assigned to new members]");
+            if (!rank.isLeaderRank()) {
+                long count = Arrays.stream(FactionPermission.values()).filter(rank::hasPermission).count();
+                lore.add("§7Permissions: §f" + count + "§7/" + FactionPermission.values().length);
+            }
+            if (canManage && !rank.isLeaderRank()) lore.add("§eClick to edit permissions");
+
+            inventory.setItem(slot++, makeItem(
+                    rank.isLeaderRank() ? Material.GOLDEN_SWORD : Material.STICK,
+                    (rank.isLeaderRank() ? "§6" : "§f") + rank.getName(), lore));
+        }
+
+        if (canManage) {
+            inventory.setItem(35, makeItem(Material.LIME_DYE,
+                    "§a+ Create New Rank",
+                    "§7Use §f/faction rank create <name>"));
+        }
+    }
+
+    private void buildRankPermEditor(Faction f, FactionRankDef rank, boolean canManage) {
+        // Back button
+        inventory.setItem(0, makeItem(Material.ARROW, "§7← Back to rank list"));
+
+        inventory.setItem(4, makeItem(Material.NAME_TAG,
+                "§5§l" + rank.getName(),
+                rank.isLeaderRank() ? "§6All permissions (leader)" : "§7Click permissions to toggle",
+                canManage && !rank.isLeaderRank() ? "§eEditing enabled" : "§8View only"));
+
+        FactionPermission[] perms = FactionPermission.values();
+        for (int i = 0; i < perms.length && i < 27; i++) {
+            FactionPermission perm = perms[i];
+            boolean has = rank.hasPermission(perm);
+            inventory.setItem(9 + i, makeItem(
+                    has ? Material.LIME_DYE : Material.RED_DYE,
+                    (has ? "§a" : "§c") + perm.getDisplayName(),
+                    "§7" + perm.getDescription(),
+                    canManage && !rank.isLeaderRank()
+                            ? (has ? "§eClick to revoke" : "§eClick to grant")
+                            : "§8Cannot edit"
+            ));
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // DIPLOMACY
     // -----------------------------------------------------------------------
 
     private void buildDiplomacy() {
-        Horizon plugin = Horizon.getInstance();
-        Faction myFaction = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-        if (myFaction == null) return;
+        Faction myFaction = faction(); if (myFaction == null) return;
 
-        // Instructions
         inventory.setItem(0, makeItem(Material.BOOK,
                 "§5§lDiplomacy",
-                "§7Propose relations with §f/faction ally/war/trade/peace <faction>",
-                "§7The other faction's officer must accept for alliances/trade.",
-                "§7War and peace proposals take immediate effect."));
+                "§7/faction ally/war/trade/peace <faction>",
+                "§7War and peace are immediate.",
+                "§7Alliances and trade require mutual acceptance."));
 
-        // All other factions and their relation to us
         int slot = 9;
-        for (Faction other : plugin.getFactionManager().getAllFactions()) {
+        for (Faction other : Horizon.getInstance().getFactionManager().getAllFactions()) {
             if (other.getFactionId().equals(myFaction.getFactionId())) continue;
-            if (slot >= 27) break;
+            if (slot >= 36) break;
 
             FactionRelation rel = myFaction.getRelation(other.getFactionId());
-            boolean pendingFromUs = plugin.getFactionManager()
+            boolean pendingFromUs   = Horizon.getInstance().getFactionManager()
                     .hasPendingProposal(myFaction.getFactionId(), other.getFactionId());
-            boolean pendingFromThem = plugin.getFactionManager()
+            boolean pendingFromThem = Horizon.getInstance().getFactionManager()
                     .hasPendingProposal(other.getFactionId(), myFaction.getFactionId());
-            FactionRelation proposedByThem = plugin.getFactionManager()
-                    .getPendingProposalRelation(other.getFactionId(), myFaction.getFactionId());
 
             Material mat = switch (rel) {
-                case ALLIED       -> Material.LIME_DYE;
-                case TRADE_PARTNER-> Material.CYAN_DYE;
-                case AT_WAR       -> Material.RED_DYE;
-                default           -> Material.GRAY_DYE;
+                case ALLIED        -> Material.LIME_DYE;
+                case TRADE_PARTNER -> Material.CYAN_DYE;
+                case AT_WAR        -> Material.RED_DYE;
+                default            -> Material.GRAY_DYE;
             };
 
             List<String> lore = new ArrayList<>();
             lore.add("§7Status: " + rel.coloured());
             lore.add("§7Members: §f" + other.getMemberCount());
-            if (pendingFromUs) lore.add("§e⏳ Your proposal pending their acceptance");
-            if (pendingFromThem && proposedByThem != null)
-                lore.add("§a⚡ They proposed: " + proposedByThem.coloured() + " §a— use /faction to respond");
-            lore.add("");
+            if (pendingFromUs)   lore.add("§e⏳ Your proposal pending");
+            if (pendingFromThem) lore.add("§a⚡ They proposed — use /faction to respond");
             lore.add("§8/faction ally/war/trade/peace " + other.getName());
 
             inventory.setItem(slot++, makeItem(mat, rel.getColour() + other.getName(), lore));
         }
-
-        if (slot == 9) {
-            inventory.setItem(13, makeItem(Material.COMPASS,
-                    "§8No other factions yet",
-                    "§7When other players create factions,",
-                    "§7they will appear here."));
-        }
     }
 
     // -----------------------------------------------------------------------
-    // BANK tab
+    // BANK
     // -----------------------------------------------------------------------
 
     private void buildBank() {
-        Horizon plugin = Horizon.getInstance();
-        Faction f = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-        if (f == null) return;
-
-        FactionMember member = f.getMember(player.getUniqueId());
-        boolean canWithdraw = member != null && member.getRank().isAtLeast(FactionRank.OFFICER);
-        long playerBal = plugin.getEconomyManager().getBalance(player);
+        Faction f = faction(); if (f == null) return;
+        boolean canDeposit  = f.memberHasPermission(player.getUniqueId(), FactionPermission.BANK_DEPOSIT);
+        boolean canWithdraw = f.memberHasPermission(player.getUniqueId(), FactionPermission.BANK_WITHDRAW);
+        long playerBal = Horizon.getInstance().getEconomyManager().getBalance(player);
 
         inventory.setItem(12, makeItem(Material.GOLD_BLOCK,
                 "§6§lFaction Bank",
-                "§7Balance: §6" + f.getBankBalance() + " EC",
-                "",
-                "§8Any member can deposit.",
-                "§8Officers and above can withdraw."));
+                "§7Balance: §6" + f.getBankBalance() + " EC"));
 
-        inventory.setItem(10, makeItem(Material.LIME_DYE,
-                "§a§l+ Deposit",
+        inventory.setItem(10, makeItem(
+                canDeposit ? Material.LIME_DYE : Material.BARRIER,
+                canDeposit ? "§a§l+ Deposit" : "§c§lDeposit (no permission)",
                 "§7Your balance: §6" + playerBal + " EC",
                 "§7Use §f/faction bank deposit <amount>"));
 
         inventory.setItem(14, makeItem(
                 canWithdraw ? Material.YELLOW_DYE : Material.BARRIER,
-                canWithdraw ? "§e§l- Withdraw" : "§c§lWithdraw (Officer+)",
-                canWithdraw
-                        ? "§7Use §f/faction bank withdraw <amount>"
-                        : "§7Rank §f" + FactionRank.OFFICER.getDisplayName() + " §7required to withdraw."));
+                canWithdraw ? "§e§l- Withdraw" : "§c§lWithdraw (no permission)",
+                "§7Use §f/faction bank withdraw <amount>"));
     }
 
     // -----------------------------------------------------------------------
@@ -278,60 +308,86 @@ public class FactionTerminalGui extends HorizonGui {
 
     @Override
     public boolean handleClick(int slot, ClickType click) {
-        Horizon plugin = Horizon.getInstance();
-
         // Tab switches
-        if (slot == SLOT_TAB_OVERVIEW)  { currentTab = Tab.OVERVIEW;  return true; }
-        if (slot == SLOT_TAB_MEMBERS)   {
-            if (plugin.getFactionManager().getPlayerFaction(player.getUniqueId()) != null)
-                currentTab = Tab.MEMBERS;
+        if (slot == SLOT_TAB_OVERVIEW)  { currentTab = Tab.OVERVIEW;  selectedRankId = null; return true; }
+        if (slot == SLOT_TAB_MEMBERS)   { currentTab = Tab.MEMBERS;   selectedRankId = null; return true; }
+        if (slot == SLOT_TAB_RANKS)     { currentTab = Tab.RANKS;     return true; }
+        if (slot == SLOT_TAB_DIPLOMACY) { currentTab = Tab.DIPLOMACY; selectedRankId = null; return true; }
+        if (slot == SLOT_TAB_BANK)      { currentTab = Tab.BANK;      selectedRankId = null; return true; }
+
+        Faction f = faction();
+        if (f == null) return handleNoFactionClick(slot);
+
+        return switch (currentTab) {
+            case OVERVIEW  -> handleOverviewClick(slot, f);
+            case RANKS     -> handleRanksClick(slot, f);
+            default        -> false;
+        };
+    }
+
+    private boolean handleNoFactionClick(int slot) {
+        var fm = Horizon.getInstance().getFactionManager();
+        if (slot == 11 && fm.hasPendingInvite(player.getUniqueId())) {
+            player.closeInventory();
+            Faction joined = fm.acceptInvite(player);
+            player.sendMessage(joined != null
+                    ? "§5[Faction] §7Joined §5" + joined.getName() + "§7."
+                    : "§c[Faction] Invite expired.");
+            return false;
+        }
+        if (slot == 15 && fm.hasPendingInvite(player.getUniqueId())) {
+            fm.declineInvite(player.getUniqueId());
+            player.sendActionBar("§c[Faction] Invite declined.");
             return true;
         }
-        if (slot == SLOT_TAB_DIPLOMACY) {
-            if (plugin.getFactionManager().getPlayerFaction(player.getUniqueId()) != null)
-                currentTab = Tab.DIPLOMACY;
-            return true;
+        return false;
+    }
+
+    private boolean handleOverviewClick(int slot, Faction f) {
+        if (slot == 22) {
+            player.closeInventory();
+            boolean left = Horizon.getInstance().getFactionManager().leave(player);
+            player.sendMessage(left
+                    ? "§5[Faction] §7Left §5" + f.getName() + "§7."
+                    : "§c[Faction] Promote another leader before leaving.");
+            return false;
         }
-        if (slot == SLOT_TAB_BANK) {
-            if (plugin.getFactionManager().getPlayerFaction(player.getUniqueId()) != null)
-                currentTab = Tab.BANK;
+        return false;
+    }
+
+    private boolean handleRanksClick(int slot, Faction f) {
+        boolean canManage = f.memberHasPermission(player.getUniqueId(), FactionPermission.MANAGE_RANKS);
+
+        // Back button in perm editor
+        if (slot == 0 && selectedRankId != null) {
+            selectedRankId = null;
             return true;
         }
 
-        // Overview actions
-        if (currentTab == Tab.OVERVIEW) {
-            // Accept invite
-            if (slot == 11 && plugin.getFactionManager().hasPendingInvite(player.getUniqueId())) {
-                player.closeInventory();
-                Faction joined = plugin.getFactionManager().acceptInvite(player);
-                if (joined != null) {
-                    player.sendMessage("§5[Faction] §7You joined §5" + joined.getName() + "§7.");
-                } else {
-                    player.sendMessage("§c[Faction] Invite expired.");
-                }
-                return false;
+        if (selectedRankId == null) {
+            // Rank list — clicking a rank opens its permission editor
+            if (!canManage) return false;
+            List<FactionRankDef> ranks = new ArrayList<>(f.getAllRanks());
+            if (slot < ranks.size()) {
+                FactionRankDef rank = ranks.get(slot);
+                if (!rank.isLeaderRank()) { selectedRankId = rank.getRankId(); return true; }
             }
-            // Decline invite
-            if (slot == 15 && plugin.getFactionManager().hasPendingInvite(player.getUniqueId())) {
-                plugin.getFactionManager().declineInvite(player.getUniqueId());
-                player.sendActionBar("§c[Faction] Invite declined.");
-                return true;
-            }
-            // Leave
-            if (slot == 22) {
-                Faction f = plugin.getFactionManager().getPlayerFaction(player.getUniqueId());
-                if (f != null && !f.isLeader(player.getUniqueId()) || (f != null && f.getMemberCount() == 1)) {
-                    player.closeInventory();
-                    boolean left = plugin.getFactionManager().leave(player);
-                    player.sendMessage(left
-                            ? "§5[Faction] §7You left §5" + f.getName() + "§7."
-                            : "§c[Faction] Transfer leadership before leaving.");
-                    return false;
-                }
-                return false;
-            }
+            return false;
         }
 
+        // Permission editor — slots 9–(9+perms.length-1) are permission toggles
+        FactionRankDef rank = f.getRank(selectedRankId);
+        if (rank == null || rank.isLeaderRank() || !canManage) return false;
+
+        FactionPermission[] perms = FactionPermission.values();
+        int permIndex = slot - 9;
+        if (permIndex >= 0 && permIndex < perms.length) {
+            FactionPermission perm = perms[permIndex];
+            boolean currently = rank.hasPermission(perm);
+            Horizon.getInstance().getFactionManager()
+                    .setRankPermission(f, player.getUniqueId(), rank.getRankId(), perm, !currently);
+            return true;
+        }
         return false;
     }
 
@@ -339,10 +395,7 @@ public class FactionTerminalGui extends HorizonGui {
     // Helper
     // -----------------------------------------------------------------------
 
-    private String getNameOf(UUID uuid, Faction faction) {
-        FactionMember m = faction.getMember(uuid);
-        if (m != null) return m.getPlayerName();
-        var p = Horizon.getInstance().getServer().getOfflinePlayer(uuid);
-        return p.getName() != null ? p.getName() : uuid.toString().substring(0, 8);
+    private Faction faction() {
+        return Horizon.getInstance().getFactionManager().getPlayerFaction(player.getUniqueId());
     }
 }
