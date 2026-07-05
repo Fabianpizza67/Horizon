@@ -193,6 +193,9 @@ public class WarpManager {
 
             ship.setWarpStatus(WarpStatus.IDLE);
 
+            // Persist new ship position immediately after warp — doesn't rely on shutdown save
+            plugin.getShipManager().getDao().save(ship);
+
             // Arrival effects
             for (UUID uuid : ship.getPassengers()) {
                 Player p = Bukkit.getPlayer(uuid);

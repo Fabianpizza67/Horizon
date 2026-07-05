@@ -37,3 +37,6 @@ gemini:
   # Leave blank to disable the Story Log entirely (everything else works fine without it)
   api-key: ''
   model: 'gemma-4-31b-it'
+
+asteroids:
+  world-name: 'world'   # set to your Deep Space void world's name

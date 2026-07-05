@@ -32,6 +32,9 @@ public class HorizonConfig {
     private final String geminiApiKey;
     private final String geminiModel;
 
+    // Asteroids
+    private final String asteroidWorldName;
+
     public HorizonConfig(Horizon plugin) {
         FileConfiguration c = plugin.getConfig();
 
@@ -61,6 +64,8 @@ public class HorizonConfig {
 
         geminiApiKey  = c.getString("gemini.api-key", "");
         geminiModel   = c.getString("gemini.model",   "gemma-4-31b-it");
+
+        asteroidWorldName = c.getString("asteroids.world-name", "world");
     }
 
     // Database
@@ -95,4 +100,7 @@ public class HorizonConfig {
     // Gemini
     public String getGeminiApiKey()  { return geminiApiKey; }
     public String getGeminiModel()   { return geminiModel; }
+
+    // Asteroids
+    public String getAsteroidWorldName() { return asteroidWorldName; }
 }

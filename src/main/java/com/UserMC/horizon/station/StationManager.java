@@ -66,7 +66,7 @@ public class StationManager {
         int saved = 0;
         for (ShipStation s : locationIndex.values()) {
             if (s.isDirty()) {
-                dao.saveSync(s);
+                dao.saveSync(s); // SYNC — not dao.save() which is async
                 saved++;
             }
         }

@@ -173,7 +173,28 @@ public class DatabaseManager {
                     FOREIGN KEY (faction_a_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE,
                     FOREIGN KEY (faction_b_id) REFERENCES horizon_factions(faction_id) ON DELETE CASCADE
                 )""");
-        }
+
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_asteroid_regions (
+                    region_x BIGINT NOT NULL, region_y BIGINT NOT NULL, region_z BIGINT NOT NULL,
+                    PRIMARY KEY (region_x, region_y, region_z)
+                )""");
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_asteroid_clusters (
+                    cluster_id VARCHAR(36) PRIMARY KEY, type VARCHAR(16) NOT NULL,
+                    world_name VARCHAR(64) NOT NULL, center_x INT NOT NULL, center_y INT NOT NULL, center_z INT NOT NULL,
+                    generated_at BIGINT NOT NULL
+                )""");
+            s.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS horizon_asteroid_blocks (
+                    block_id VARCHAR(36) PRIMARY KEY, cluster_id VARCHAR(36) NOT NULL,
+                    rel_x INT NOT NULL, rel_y INT NOT NULL, rel_z INT NOT NULL,
+                    material VARCHAR(32) NOT NULL, mined BOOLEAN NOT NULL DEFAULT FALSE,
+                    mined_at BIGINT NOT NULL DEFAULT 0, respawn_at BIGINT NOT NULL DEFAULT 0,
+                    FOREIGN KEY (cluster_id) REFERENCES horizon_asteroid_clusters(cluster_id) ON DELETE CASCADE,
+                    INDEX idx_cluster (cluster_id)
+                )""");
+                    }
     }
 
     public Connection getConnection() throws SQLException { return dataSource.getConnection(); }
